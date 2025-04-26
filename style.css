@@ -10,6 +10,12 @@ body
 	position: relative;
 }
 
+button
+{
+	all: unset;
+	cursor: pointer;
+}
+
 #bg
 {
 	position: absolute;

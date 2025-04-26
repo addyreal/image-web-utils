@@ -3965,6 +3965,7 @@ async function createWasm() {
       quit_(1, e);
     };
 
+
   FS.createPreloadedFile = FS_createPreloadedFile;
   FS.staticInit();
   // Set module methods based on EXPORTED_RUNTIME_METHODS
@@ -4009,6 +4010,7 @@ if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
 }
 
 // Begin runtime exports
+  Module['getValue'] = getValue;
   var missingLibrarySymbols = [
   'writeI53ToI64',
   'writeI53ToI64Clamped',
@@ -4235,7 +4237,6 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'freeTableIndexes',
   'functionsInTableMap',
   'setValue',
-  'getValue',
   'PATH',
   'PATH_FS',
   'UTF8Decoder',
@@ -4343,7 +4344,7 @@ createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
 var _free = Module['_free'] = createExportWrapper('free', 1);
 var _malloc = Module['_malloc'] = createExportWrapper('malloc', 1);
-var _image_info = Module['_image_info'] = createExportWrapper('image_info', 2);
+var _Decode = Module['_Decode'] = createExportWrapper('Decode', 7);
 var _main = Module['_main'] = createExportWrapper('main', 2);
 var _fflush = createExportWrapper('fflush', 1);
 var _strerror = createExportWrapper('strerror', 1);
