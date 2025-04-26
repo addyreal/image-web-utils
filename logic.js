@@ -1,3 +1,7 @@
+const config_container = document.getElementById("config_container");
+const _c_image_view = document.getElementById("_c_image_view");
+const canvas_container = document.getElementById("canvas_container");
+
 function clampedArrayRGBtoRGBA(rgb, w, h)
 {
 	var rgba = new Uint8ClampedArray(w * h * 4);
@@ -129,13 +133,15 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			--------------------
 		*/
 
+		// Enable configging
+		config_container.classList.remove("hidden");
+
 		// Make image
 		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
 		const rgbaPixels = clampedArrayRGBA(imagePixels, input_width, input_height, input_channels);
 		const imageData = new ImageData(rgbaPixels, input_width, input_height);
 
 		// Put image into canvas
-		const canvas_container = document.getElementById("canvas_container");
 		const canvas = document.createElement('canvas');
 		canvas.width = input_width >= 600 ? 600 : input_width;
 		canvas.height = input_height >= 600 ? 600: input_height;
@@ -146,4 +152,9 @@ document.getElementById('input_label').addEventListener('change', function(e)
 	};
 
 	reader.readAsArrayBuffer(file);
+});
+
+_c_image_view.addEventListener('click', function()
+{
+	canvas_container.classList.toggle("hidden");
 });
