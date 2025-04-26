@@ -11,6 +11,18 @@ function clampedArrayRGBtoRGBA(rgb, w, h)
 	return rgba;
 }
 
+function clampedArrayRGBA(pix, w, h, c)
+{
+	if(c == 3)
+	{
+		return clampedArrayRGBtoRGBA(pix, w, h);
+	}
+	else if(c == 4)
+	{
+		return new Uint8ClampedArray(pix);
+	}
+}
+
 function bytesToImageFormat(bytes)
 {
 	// png (.,p,n,g)
@@ -114,27 +126,19 @@ document.getElementById('input_label').addEventListener('change', function(e)
 				input_width
 				input_height
 				input_channels
+			--------------------
 		*/
 
 		// Make image
 		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
-		var rgbaPixels;
-		if(input_channels == 3)
-		{
-			rgbaPixels = clampedArrayRGBtoRGBA(imagePixels, input_width, input_height)
-		}
-		else
-		{
-			rgbaPixels = new Uint8ClampedArray(imagePixels);
-		}
+		const rgbaPixels = clampedArrayRGBA(imagePixels, input_width, input_height, input_channels);
 		const imageData = new ImageData(rgbaPixels, input_width, input_height);
 
 		// Put image into canvas
 		const canvas_container = document.getElementById("canvas_container");
 		const canvas = document.createElement('canvas');
-		canvas.width = input_width;
-		canvas.height = input_height;
-		canvas.style.border = '1px solid white';
+		canvas.width = input_width >= 600 ? 600 : input_width;
+		canvas.height = input_height >= 600 ? 600: input_height;
 		const context = canvas.getContext('2d');
 		context.putImageData(imageData, 0, 0)
 		canvas_container.innerHTML = '';
