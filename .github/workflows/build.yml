@@ -30,7 +30,8 @@ jobs:
         touch build/.nojekyll
 
     - name: Deploy to build branch
-      uses: actions/deploy-pages@v2
+      uses: peaceiris/actions-gh-pages@v4
       with:
-        branch: build
-        folder: build
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: build
+        publish_dir: ./build
