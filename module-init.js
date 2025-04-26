@@ -1,7 +1,7 @@
 // Output functions
 function getLineCount(textarea)
 {
-    return textarea.value.split('\n').length;
+    return textarea.value.split('\n').length - 1;
 }
 
 function resizeOutput(textarea)
