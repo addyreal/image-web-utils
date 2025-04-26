@@ -1,0 +1,36 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Copy index.html
+      run: |
+        cp index.html build/index.html
+
+    - name: Copy style.css
+      run: |
+        cp style.css build/style.css
+
+    - name: Create .nojekyll
+      run: |
+        touch build/.nojekyll
+
+    - name: Deploy to build branch
+      uses: actions/deploy-pages@v2
+      with:
+        branch: build
+        folder: build
