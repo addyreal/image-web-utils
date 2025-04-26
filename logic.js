@@ -69,14 +69,23 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		const decodeOK = Module._Decode(bytes, input_size, input_format, input_pixels_ptr, input_width_ptr, input_height_ptr, input_channels_ptr);
 		resizeOutput(outputElement);
 
-		// Input callback retrieve
-		if(decodeOK == true)
+		// Check for success
+		if(decodeOK == false)
 		{
-			const input_pixels = Module.getValue(input_pixels_ptr, '*');
-			const input_width = Module.getValue(input_width_ptr, 'i32');
-			const input_height = Module.getValue(input_height_ptr, 'i32');
-			const input_channels = Module.getValue(input_channels_ptr, 'i32');
+			console.log("ERROR: Decode failed");
+			Module._free(input_pixels_ptr);
+			Module._free(input_channels_ptr);
+			Module._free(input_height_ptr);
+			Module._free(input_width_ptr);
+			Module._free(bytes);
+			return;
 		}
+
+		// Input callback retrieve
+		const input_pixels = Module.getValue(input_pixels_ptr, '*');
+		const input_width = Module.getValue(input_width_ptr, 'i32');
+		const input_height = Module.getValue(input_height_ptr, 'i32');
+		const input_channels = Module.getValue(input_channels_ptr, 'i32');
 
 		// Delete pointers
 		Module._free(input_pixels_ptr);
@@ -84,16 +93,6 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		Module._free(input_height_ptr);
 		Module._free(input_width_ptr);
 		Module._free(bytes);
-
-		console.log(input_width);
-
-		// Return if decode failed
-		if(decodeOK == false)
-		{
-			console.log("ERROR: Decode failed");
-			console.log(decodeOK);
-			return;
-		}
 
 		/*
 			Decoding successful:
