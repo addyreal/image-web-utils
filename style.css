@@ -77,3 +77,9 @@ h1
 	text-decoration: underline;
 	cursor: pointer;
 }
+
+#canvas_container canvas
+{
+	border: 1px solid white;
+	margin: 0 auto;
+}
