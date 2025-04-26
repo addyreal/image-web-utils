@@ -38,7 +38,7 @@ var conversionConfig =
 	height: 250,
 }
 
-document.getElementById('input-label').addEventListener('change', function(e)
+document.getElementById('input_label').addEventListener('change', function(e)
 {
 	const file = e.target.files[0];
 	if (!file) return;
@@ -66,14 +66,17 @@ document.getElementById('input-label').addEventListener('change', function(e)
 
 		// Call
 		clearOutput(outputElement);
-		Module._Decode(bytes, input_size, input_format, input_pixels_ptr, input_width_ptr, input_height_ptr, input_channels_ptr);
+		const decodeOK = Module._Decode(bytes, input_size, input_format, input_pixels_ptr, input_width_ptr, input_height_ptr, input_channels_ptr);
 		resizeOutput(outputElement);
 
 		// Input callback retrieve
-		const input_pixels = Module.getValue(input_pixels_ptr, '*');
-		const input_width = Module.getValue(input_width_ptr, 'i32');
-		const input_height = Module.getValue(input_height_ptr, 'i32');
-		const input_channels = Module.getValue(input_channels_ptr, 'i32');
+		if(decodeOK == true)
+		{
+			const input_pixels = Module.getValue(input_pixels_ptr, '*');
+			const input_width = Module.getValue(input_width_ptr, 'i32');
+			const input_height = Module.getValue(input_height_ptr, 'i32');
+			const input_channels = Module.getValue(input_channels_ptr, 'i32');
+		}
 
 		// Delete pointers
 		Module._free(input_pixels_ptr);
@@ -82,16 +85,35 @@ document.getElementById('input-label').addEventListener('change', function(e)
 		Module._free(input_width_ptr);
 		Module._free(bytes);
 
+		// Return if decode failed
+		if(decodeOK == false)
+		{
+			return;
+		}
+
 		/*
-			input_pixels
-			input_format
-			input_width
-			input_height
-			input_channels
+			Decoding successful:
+				input_pixels
+				input_format
+				input_width
+				input_height
+				input_channels
 		*/
-		console.log(input_width);
-		console.log(input_height);
-		console.log(input_channels);
+
+		// Make image
+		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
+		const imageData = new ImageData(new Uint8ClampedArray(imagePixels), input_width, input_height);
+
+		// Put image into canvas
+		const canvas_container = document.getElementById("canvas_container");
+		const canvas = document.createElement('canvas');
+		canvas.width = input_width;
+		canvas.height = input_height;
+		canvas.style.border = '1px solid white';
+		const context = canvas.getContext('2d');
+		context.putImageData(imageData, 0, 0)
+		canvas_container.innerHTML = '';
+		canvas_container.appendChild(canvas);
 	};
 
 	reader.readAsArrayBuffer(file);
