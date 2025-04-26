@@ -105,6 +105,8 @@ document.getElementById('input_label').addEventListener('change', function(e)
 
 		// Make image
 		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
+		console.log(imagePixels.length);
+		console.log(input_width * input_height * input_channels);
 		const imageData = new ImageData(new Uint8ClampedArray(imagePixels), input_width, input_height);
 
 		// Put image into canvas
