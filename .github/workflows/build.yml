@@ -16,7 +16,13 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
+    - name: Build C++
+      run: |
+        cd build
+        emcc ../src/*.cpp -s EXPORTED_FUNCTIONS='[_main]'
+        cd ..
+
     - name: Copy index.html
       run: |
         cp index.html build/index.html
