@@ -165,6 +165,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		let lastX = 0;
 		let lastY = 0;
 		let isDragging = false;
+		canvas.classList.remove('grabbing');
 			// Render
 		function draw()
 		{
@@ -200,6 +201,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		{
 			const rect = canvas.getBoundingClientRect();
 			isDragging = true;
+			canvas.classList.add('grabbing');
 			lastX = e.clientX - rect.left;
 			lastY = e.clientY - rect.top;
 		});
@@ -221,8 +223,16 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			draw();
 		});
 			// No dragging
-		canvas.addEventListener('mouseup', () => isDragging = false);
-		canvas.addEventListener('mouseleave', () => isDragging = false);
+		canvas.addEventListener('mouseup', () => 
+		{
+			isDragging = false
+			canvas.classList.remove('grabbing');
+		});
+		canvas.addEventListener('mouseleave', () => 
+		{
+			isDragging = false
+			canvas.classList.remove('grabbing');
+		});
 
 		draw();
 		
