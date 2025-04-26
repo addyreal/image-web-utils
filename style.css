@@ -42,7 +42,7 @@ h1
 
 #output {
 	display: block;
-	background-color: black;
+	background-color: #222222;
 	font-family: 'Lucida Console', Monaco, monospace;
 	font-size: 1.2rem;
 	color: white;
@@ -51,11 +51,23 @@ h1
 	height: calc(1.2rem * 2 + 60px);
 	margin: 25px 0 0 0;
 	padding: 25px;
+	border: 0;
 	box-sizing: border-box;
-	border: 1px solid white;
 	outline: none;
 	resize: none;
+}
 
-	background-color: #222222;
-	border: 0;
+#input
+{
+	display: none;
+}
+
+#input-label
+{
+	display: block;
+	font-family: 'Lucida Console', Monaco, monospace;
+	font-size: 1.2rem;
+	color: white;
+	text-decoration: underline;
+	cursor: pointer;
 }
