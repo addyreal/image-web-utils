@@ -67,16 +67,6 @@ var conversionConfig =
 	height: 250,
 }
 
-// Draw
-function draw()
-{
-	context.setTransform(1, 0, 0, 1, 0, 0);
-	context.clearRect(0, 0, canvas.width, canvas.height);
-	context.imageSmoothingEnabled = false;
-	context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
-	context.drawImage(vCanvas, 0, 0);
-}
-
 document.getElementById('input_label').addEventListener('change', function(e)
 {
 	const file = e.target.files[0];
@@ -175,6 +165,15 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		let lastX = 0;
 		let lastY = 0;
 		let isDragging = false;
+			// Render
+		function draw()
+		{
+			context.setTransform(1, 0, 0, 1, 0, 0);
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.imageSmoothingEnabled = false;
+			context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
+			context.drawImage(vCanvas, 0, 0);
+		}
 			// Zoom
 		canvas.addEventListener('wheel', (e) =>
 		{
