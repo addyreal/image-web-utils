@@ -85,9 +85,13 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		Module._free(input_width_ptr);
 		Module._free(bytes);
 
+		console.log(input_width);
+
 		// Return if decode failed
 		if(decodeOK == false)
 		{
+			console.log("ERROR: Decode failed");
+			console.log(decodeOK);
 			return;
 		}
 
