@@ -1,6 +1,6 @@
-const config_container = document.getElementById("config_container");
-const _c_image_view = document.getElementById("_c_image_view");
-const canvas_container = document.getElementById("canvas_container");
+const config_container = document.getElementById('config_container');
+const _c_image_view = document.getElementById('_c_image_view');
+const canvas_container = document.getElementById('canvas_container');
 
 function clampedArrayRGBtoRGBA(rgb, w, h)
 {
@@ -65,6 +65,16 @@ var conversionConfig =
 	quality: 90,
 	width: 250,
 	height: 250,
+}
+
+// Draw
+function draw()
+{
+	context.setTransform(1, 0, 0, 1, 0, 0);
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.imageSmoothingEnabled = false;
+	context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
+	context.drawImage(vCanvas, 0, 0);
 }
 
 document.getElementById('input_label').addEventListener('change', function(e)
@@ -134,21 +144,89 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		*/
 
 		// Enable configging
-		config_container.classList.remove("hidden");
+		config_container.classList.remove('hidden');
 
 		// Make image
 		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
 		const rgbaPixels = clampedArrayRGBA(imagePixels, input_width, input_height, input_channels);
 		const imageData = new ImageData(rgbaPixels, input_width, input_height);
 
-		// Put image into canvas
+		// Make main canvas
 		const canvas = document.createElement('canvas');
+		const context = canvas.getContext('2d');
 		canvas.width = input_width >= 600 ? 600 : input_width;
 		canvas.height = input_height >= 600 ? 600: input_height;
-		const context = canvas.getContext('2d');
-		context.putImageData(imageData, 0, 0)
+		context.imageSmoothingEnabled = false;
 		canvas_container.innerHTML = '';
 		canvas_container.appendChild(canvas);
+
+		// Make virtual canvas
+		const vCanvas = document.createElement('canvas');
+		const vContext = vCanvas.getContext('2d');
+		vCanvas.width = input_width;
+		vCanvas.height = input_height;
+		vContext.imageSmoothingEnabled = false;
+		vContext.putImageData(imageData, 0, 0);
+
+		// Pan and zoom
+		let scale = 1;
+		let offsetX = 0;
+		let offsetY = 0;
+		let lastX = 0;
+		let lastY = 0;
+		let isDragging = false;
+			// Zoom
+		canvas.addEventListener('wheel', (e) =>
+		{
+			e.preventDefault();
+			const rect = canvas.getBoundingClientRect();
+		
+			const zoomFactor = 1.1;
+			const mouseX = e.clientX - rect.left;
+			const mouseY = e.clientY - rect.top;
+			const scaleFactor = e.deltaY <= 0 ? zoomFactor : 1 / zoomFactor;
+		
+			const worldX = (mouseX - offsetX) / scale;
+			const worldY = (mouseY - offsetY) / scale;
+		
+			scale *= scaleFactor;
+		
+			offsetX = mouseX - worldX * scale;
+			offsetY = mouseY - worldY * scale;
+		
+			draw();
+		});
+			// Dragging logic
+		canvas.addEventListener('mousedown', (e) =>
+		{
+			const rect = canvas.getBoundingClientRect();
+			isDragging = true;
+			lastX = e.clientX - rect.left;
+			lastY = e.clientY - rect.top;
+		});
+			// Mousemove logic
+		canvas.addEventListener('mousemove', (e) =>
+		{
+			if(!isDragging) return;
+			const rect = canvas.getBoundingClientRect();
+
+			const dx = e.clientX - rect.left - lastX;
+			const dy = e.clientY - rect.top - lastY;
+
+			offsetX += dx;
+			offsetY += dy;
+
+			lastX = e.clientX - rect.left;
+			lastY = e.clientY - rect.top;
+
+			draw();
+		});
+			// No dragging
+		canvas.addEventListener('mouseup', () => isDragging = false);
+		canvas.addEventListener('mouseleave', () => isDragging = false);
+
+		draw();
+		
 	};
 
 	reader.readAsArrayBuffer(file);
@@ -156,6 +234,6 @@ document.getElementById('input_label').addEventListener('change', function(e)
 
 _c_image_view.addEventListener('click', function()
 {
-	canvas_container.classList.toggle("hidden");
+	canvas_container.classList.toggle('hidden');
 	_c_image_view.innerHTML = _c_image_view.innerHTML == "View" ? "Hide" : "View";
 });
