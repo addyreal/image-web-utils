@@ -17,6 +17,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up emcc
+      uses: mymindstorm/setup-emsdk@v14
+      with:
+        version: latest
+
     - name: Build C++
       run: |
         cd build
