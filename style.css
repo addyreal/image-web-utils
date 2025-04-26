@@ -100,6 +100,16 @@ h1
 #canvas_container canvas
 {
 	border: 1px solid white;
+	background-image:
+		linear-gradient(90deg, #fff 1px, black 1px),
+		linear-gradient(#fff 1px, black 1px);
+	background-size: 10px 10px;
+	cursor: grab;
+}
+
+.grabbing
+{
+	cursor: grabbing;
 }
 
 .hidden
