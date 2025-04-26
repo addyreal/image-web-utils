@@ -1,3 +1,16 @@
+function clampedArrayRGBtoRGBA(rgb, w, h)
+{
+	var rgba = new Uint8ClampedArray(w * h * 4);
+	for(let l = 0, X = 0; l < rgb.length; l += 3, X += 4)
+	{
+		rgba[X] = rgb[l];
+		rgba[X + 1] = rgb[l + 1];
+		rgba[X + 2] = rgb[l + 2];
+		rgba[X + 3] = 255;
+	}
+	return rgba;
+}
+
 function bytesToImageFormat(bytes)
 {
 	// png (.,p,n,g)
@@ -105,9 +118,16 @@ document.getElementById('input_label').addEventListener('change', function(e)
 
 		// Make image
 		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
-		console.log(imagePixels.length);
-		console.log(input_width * input_height * input_channels);
-		const imageData = new ImageData(new Uint8ClampedArray(imagePixels), input_width, input_height);
+		var rgbaPixels;
+		if(input_channels == 3)
+		{
+			rgbaPixels = clampedArrayRGBtoRGBA(imagePixels, input_width, input_height)
+		}
+		else
+		{
+			rgbaPixels = new Uint8ClampedArray(imagePixels);
+		}
+		const imageData = new ImageData(rgbaPixels, input_width, input_height);
 
 		// Put image into canvas
 		const canvas_container = document.getElementById("canvas_container");
