@@ -157,4 +157,5 @@ document.getElementById('input_label').addEventListener('change', function(e)
 _c_image_view.addEventListener('click', function()
 {
 	canvas_container.classList.toggle("hidden");
+	_c_image_view.innerHTML = _c_image_view.innerHTML == "View" ? "Hide" : "View";
 });

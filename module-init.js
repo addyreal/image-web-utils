@@ -6,7 +6,7 @@ function getLineCount(textarea)
 
 function resizeOutput(textarea)
 {
-	textarea.style.height = "calc(1.2rem * " + getLineCount(textarea) + " + 60px)";
+	textarea.style.height = "calc(1.2rem * " + getLineCount(textarea) + " + 70px)";
 }
 
 function clearOutput(textarea)
