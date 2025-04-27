@@ -61,7 +61,7 @@ function bytesToImageFormat(bytes)
 			{
 				if(bytes[i] == 0x68 && bytes[i+1] == 0x65 && bytes[i+2] == 0x69 && bytes[i+3] == 0x63)
 				{
-					return -3;
+					return 3;
 				}
 			}
 		}
