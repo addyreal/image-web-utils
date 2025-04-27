@@ -16,7 +16,7 @@ function clearOutput(textarea)
 
 // Module init
 const outputElement = document.getElementById('output');
-clearOutput(outputElement)
+clearOutput(outputElement);
 var Module =
 {
 	print(...args)
