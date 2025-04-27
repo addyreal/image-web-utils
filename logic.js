@@ -45,27 +45,23 @@ function bytesToImageFormat(bytes)
 	{
         return 2;
     }
-	// heic (scannable AND ftyp)
-	else if(bytes.length >= 48 && (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70))
+	// ftyp heic
+	else if((bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) && (bytes[8] === 0x68 && bytes[9] === 0x65 && bytes[10] === 0x69 && bytes[11] === 0x63))
 	{
-		// major heic
-		if(bytes[8] === 0x68 && bytes[9] === 0x65 && bytes[10] === 0x69 && bytes[11] === 0x63)
+		return 3;
+	}
+	//ftyp mif1 and heic as minor
+	else if((bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) && (bytes[8] === 0x6D && bytes[9] === 0x69 && bytes[10] === 0x66 && bytes[11] === 0x31))
+	{
+		console.log("checking minors");
+		for(let i = 16; i + 3 < bytes.length && i < 48; i += 4)
 		{
-			return 3;
-		}
-		// major mif1
-		else if(bytes[8] === 0x6D && bytes[9] === 0x69 && bytes[10] === 0x66 && bytes[11] === 0x31)
-		{
-			// minor heic, checking 8 of them
-			for(let i = 16; i + 3 < bytes.length && i < 48; i += 4)
+			if(bytes[i] == 0x68 && bytes[i+1] == 0x65 && bytes[i+2] == 0x69 && bytes[i+3] == 0x63)
 			{
-				if(bytes[i] == 0x68 && bytes[i+1] == 0x65 && bytes[i+2] == 0x69 && bytes[i+3] == 0x63)
-				{
-					return 3;
-				}
+				return 3;
 			}
 		}
-		// unsupported
+		console.log("done checking minors");
 		return -1;
 	}
 	// unsupported
