@@ -174,6 +174,19 @@ extern "C"
 		else if(format != png && format != jpeg && format != webp && format != heic)
 		{
 			std::cout << "Input format not supported" << std::endl;
+			std::cout << "bytes here:" << std::endl;
+			for(int i = 0; i < 36; i++)
+			{
+				std::cout << (char)bytes[i];
+				if(i == 35)
+				{
+					std::cout << std::endl;
+				}
+				else
+				{
+					std::cout << ",";
+				}
+			}
 			return false;
 		}
 
