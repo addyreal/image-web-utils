@@ -43,20 +43,6 @@ int get_webp_num_channels(const uint8_t* data, int data_size)
 	return features.has_alpha ? 4 : 3;
 }
 
-int get_heic_num_channels(const struct heif_image* img)
-{
-	switch(heif_image_get_chroma_format(img))
-	{
-		case heif_chroma_monochrome: return 1;
-		case heif_chroma_420:
-		case heif_chroma_422:
-		case heif_chroma_444:
-		case heif_chroma_interleaved_RGB: return 3;
-		case heif_chroma_interleaved_RGBA: return 4;
-		default: return -1;
-	}
-}
-
 uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* height_ptr, int* channels_ptr)
 {
 	heif_context* context = heif_context_alloc();
@@ -84,7 +70,15 @@ uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* he
 	}
 
 	heif_image* img = nullptr;
-	err = heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGBA, nullptr);
+	switch(heif_image_handle_has_alpha_channel(handle))
+	{
+		case true:
+			err = heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGBA, nullptr);
+			break;
+		case false:
+			err = heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
+			break;
+	}
 	if(err.code != heif_error_Ok)
 	{
 		std::cout << "HEIC: Failed to decode image" << std::endl;
@@ -96,7 +90,6 @@ uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* he
 
 	int width, height, channels;
 	enum heif_colorspace cs = heif_image_get_colorspace(img);
-	enum heif_chroma chroma = heif_image_get_chroma_format(img);
 	switch(cs)
 	{
 		case heif_colorspace_YCbCr:
@@ -106,7 +99,6 @@ uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* he
 			break;
 		case heif_colorspace_RGB:
 			width = heif_image_get_width(img, heif_channel_interleaved);
-			std::cout << width << std::endl;
 			height = heif_image_get_height(img, heif_channel_interleaved);
 			break;
 		default:
@@ -114,7 +106,7 @@ uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* he
 			break;
 	}
 	
-	channels = get_heic_num_channels(img);
+	channels = heif_image_handle_has_alpha_channel(handle) ? 4 : 3;
 	*width_ptr = width;
 	*height_ptr = height;
 	*channels_ptr = channels;
@@ -122,13 +114,13 @@ uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* he
 	int stride;
 	const uint8_t* rgba = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
 
-	uint8_t* out_rgba = new uint8_t[width * height * 4];
+	uint8_t* out_rgba = new uint8_t[width * height * channels];
 	for(int y = 0; y < height; ++y)
 	{
 		std::memcpy(
-			out_rgba + y * width * 4,
+			out_rgba + y * width * channels,
 			rgba + y * stride,
-			width * 4
+			width * channels
 		);
 	}
 
