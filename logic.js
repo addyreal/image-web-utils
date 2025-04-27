@@ -55,6 +55,14 @@ function bytesToImageFormat(bytes)
 	// unsupported
 	else
 	{
+		console.log(bytes[4] === 0x66); // Should log true if byte at index 4 is 0x66
+		console.log(bytes[5] === 0x74); // Should log true if byte at index 5 is 0x74
+		console.log(bytes[6] === 0x79); // Should log true if byte at index 6 is 0x79
+		console.log(bytes[7] === 0x70); // Should log true if byte at index 7 is 0x70
+		console.log(bytes[8] === 0x68); // Should log true if byte at index 8 is 0x68
+		console.log(bytes[9] === 0x65); // Should log true if byte at index 9 is 0x65
+		console.log(bytes[10] === 0x69); // Should log true if byte at index 10 is 0x69
+		console.log(bytes[11] === 0x63); // Should log true if byte at index 11 is 0x63
 		return -1;
 	}
 }
