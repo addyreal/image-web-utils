@@ -229,11 +229,11 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			canvas.classList.remove('grabbing');
 		}
 		// PC implementation
-		canvas.addEventListener('wheel', zoom(e));
-		canvas.addEventListener('mousedown', press(e.clientX, e.clientY));
+		canvas.addEventListener('wheel', (e)=>{zoom(e)});
+		canvas.addEventListener('mousedown', (e)=>{press(e,clientX, e.clientY)});
 		canvas.addEventListener('mousemove', move(e.clientX, e.clientY));
-		canvas.addEventListener('mouseup', end());
-		canvas.addEventListener('mouseleave', end());
+		canvas.addEventListener('mouseup', ()=>{end()});
+		canvas.addEventListener('mouseleave', ()=>{end()});
 		// Mobile implementation
 		let lastTouchesDist = 0;
 		let isTouchZooming = false;
@@ -251,13 +251,13 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		{
 			return (touch1.clientY + touch2.clientY)/2
 		}
-		function mobileStartZoom(touch1, touch2)
+		function mobileStartZoom(e, touch1, touch2)
 		{
 			e.preventDefault();
 			isTouchZooming = true;
 			lastTouchesDist = getTouchesDist(touch1, touch2);
 		}
-		function mobileZoom(touch1, touch2)
+		function mobileZoom(e, touch1, touch2)
 		{
 			e.preventDefault();
 			const rect = canvas.getBoundingClientRect();
@@ -292,7 +292,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			}
 			else if(e.touches.length == 2)
 			{
-				mobileStartZoom(e.touches[0], e.touches[1]);
+				mobileStartZoom(e, e.touches[0], e.touches[1]);
 			}
 		}, {passive: false});
 		canvas.addEventListener('touchmove', function(e)
@@ -303,11 +303,11 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			}
 			else if(e.touches.length == 2)
 			{
-				mobileZoom(e.touches[0], e.touches[1]);
+				mobileZoom(e, e.touches[0], e.touches[1]);
 			}
 		}, {passive: false});
-		canvas.addEventListener('touchend', mobileEnd(), {passive: false});
-		canvas.addEventListener('touchcancel', mobileEnd(), {passive: false});
+		canvas.addEventListener('touchend', ()=>{mobileEnd()}, {passive: false});
+		canvas.addEventListener('touchcancel', ()=>{mobileEnd()}, {passive: false});
 
 		draw();
 	};
