@@ -88,6 +88,8 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		const arrayBuffer = reader.result;
 		const charArray = new Uint8Array(arrayBuffer);
 
+		console.log("chararray len: " + charArray.length)
+
 		// Input
 		const bytes = Module._malloc(charArray.length);
 		Module.HEAPU8.set(charArray, bytes);
