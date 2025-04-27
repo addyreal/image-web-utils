@@ -64,11 +64,6 @@ uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* he
 		return nullptr;
 	}
 
-	if(heif_image_handle_has_alpha_channel(handle))
-	{
-		std::cout << "HEIC: image has alpha" << std::endl;
-	}
-
 	heif_image* img = nullptr;
 	switch(heif_image_handle_has_alpha_channel(handle))
 	{
@@ -92,17 +87,23 @@ uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* he
 	enum heif_colorspace cs = heif_image_get_colorspace(img);
 	switch(cs)
 	{
-		case heif_colorspace_YCbCr:
-			width = heif_image_get_width(img, heif_channel_Y);
-			height = heif_image_get_height(img, heif_channel_Y);
-			std::cout << "HEIC: YCbCr decoded" << std::endl;
-			break;
 		case heif_colorspace_RGB:
 			width = heif_image_get_width(img, heif_channel_interleaved);
 			height = heif_image_get_height(img, heif_channel_interleaved);
 			break;
+		case heif_colorspace_YCbCr:
+			std::cout << "HEIC: libheif forced YCbCr colorspace, aborting" << std::endl;
+			heif_image_release(img);
+			heif_image_handle_release(handle);
+			heif_context_free(context);
+			return nullptr;
+			break;
 		default:
-			std::cout << "HEIC: Unknown colorspace decoded" << std::endl;
+			std::cout << "HEIC: libheif forced an awkward colorspace, aborting" << std::endl;
+			heif_image_release(img);
+			heif_image_handle_release(handle);
+			heif_context_free(context);
+			return nullptr;
 			break;
 	}
 	
