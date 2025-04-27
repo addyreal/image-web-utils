@@ -45,9 +45,10 @@ function bytesToImageFormat(bytes)
 	{
         return 2;
     }
-	// heic (f,t,y,p h,e,i,c)
-	else if(bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70 &&
-		bytes[20] === 0x68 && bytes[21] === 0x65 && bytes[22] === 0x69 && bytes[23] === 0x63)
+	// random heic checking, major and somewhere in minor for a few random images i have downloaded (that somehow dont randomly not work)
+	else if((bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70 &&
+		bytes[8] === 0x68 && bytes[9] === 0x65 && bytes[10] === 0x69 && bytes[11] === 0x63) || (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70 &&
+		bytes[20] === 0x68 && bytes[21] === 0x65 && bytes[22] === 0x69 && bytes[23] === 0x63))
 	{
 		return 3;
 	}
