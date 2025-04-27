@@ -165,7 +165,10 @@ extern "C"
 		uint8_t* pixels = nullptr;
 		int width, height, channels;
 
-		std::cout << "FORMAT " << format << std::endl;
+		if(format == heic)
+		{
+			std::cout << "Received HEIC, HEIC (support) sucks, program may randomly abort" << std::endl;
+		}
 
 		// Validate
 		if(size == 0)
@@ -175,20 +178,7 @@ extern "C"
 		}
 		else if(format != png && format != jpeg && format != webp && format != heic)
 		{
-			std::cout << "Input format not supported, got: " << format << std::endl;
-			std::cout << "bytes here:" << std::endl;
-			for(int i = 0; i < 36; i++)
-			{
-				std::cout << (char)bytes[i];
-				if(i == 35)
-				{
-					std::cout << std::endl;
-				}
-				else
-				{
-					std::cout << ",";
-				}
-			}
+			std::cout << "Input format not supported" << std::endl;
 			return false;
 		}
 
