@@ -9,6 +9,25 @@ enum imgformat
 	png = 0, jpeg = 1, webp = 2, heic = 3
 };
 
+const char* ftos(imgformat f)
+{
+	switch(f)
+	{
+		case png:
+			return "png";
+			break;
+		case jpeg:
+			return "jpeg";
+			break;
+		case webp:
+			return "webp";
+			break;
+		case heic:
+			return "heic";
+			break;
+	}
+}
+
 void freeInput(uint8_t* ptr, imgformat format)
 {
 	switch(format)
@@ -83,9 +102,11 @@ extern "C"
 		*decoded_channels_ptr = channels;
 
 		// Log
+		std::cout << "Format: " << ftos(format) << std::endl;
 		std::cout << "Width: " << width << std::endl;
 		std::cout << "Height: " << height << std::endl;
 		std::cout << "Channels: " << channels << std::endl;
+		std::cout << "Size(B): " << size << std::endl;
 
 		freeInput(pixels, format);
 		return true;
