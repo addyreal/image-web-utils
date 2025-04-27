@@ -165,6 +165,8 @@ extern "C"
 		uint8_t* pixels = nullptr;
 		int width, height, channels;
 
+		std::cout << "FORMAT " << format << std::endl;
+
 		// Validate
 		if(size == 0)
 		{
