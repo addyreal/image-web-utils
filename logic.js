@@ -98,10 +98,6 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		// Read
 		const arrayBuffer = reader.result;
 		const charArray = new Uint8Array(arrayBuffer);
-		if(charArray.length <= 16)
-		{
-			return;
-		}
 
 		// Input
 		const bytes = Module._malloc(charArray.length);
