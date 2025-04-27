@@ -206,8 +206,9 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			lastY = y - rect.top;
 		}
 			// Move
-		function move(x, y)
+		function move(e, x, y)
 		{
+			e.preventDefault();
 			if(!isDragging) return;
 			const rect = canvas.getBoundingClientRect();
 
@@ -231,7 +232,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		// PC implementation
 		canvas.addEventListener('wheel', (e)=>{zoom(e)});
 		canvas.addEventListener('mousedown', (e)=>{press(e,clientX, e.clientY)});
-		canvas.addEventListener('mousemove', (e)=>{move(e.clientX, e.clientY)});
+		canvas.addEventListener('mousemove', (e)=>{move(e, e.clientX, e.clientY)});
 		canvas.addEventListener('mouseup', ()=>{end()});
 		canvas.addEventListener('mouseleave', ()=>{end()});
 		// Mobile implementation
@@ -299,7 +300,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		{
 			if(e.touches.length == 1)
 			{
-				move(e.touches[0].clientX, e.touches[0].clientY);
+				move(e, e.touches[0].clientX, e.touches[0].clientY);
 			}
 			else if(e.touches.length == 2)
 			{
