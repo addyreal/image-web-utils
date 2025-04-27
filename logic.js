@@ -45,11 +45,28 @@ function bytesToImageFormat(bytes)
 	{
         return 2;
     }
-	// heic (f,t,y,p h,e,i,c)
-	else if(bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70 &&
-		bytes[20] === 0x68 && bytes[21] === 0x65 && bytes[22] === 0x69 && bytes[23] === 0x63)
+	// heic (scannable AND ftyp)
+	else if(bytes.length >= 48 && (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70))
 	{
-		return 3;
+		// major heic
+		if(bytes[8] === 0x68 && bytes[9] === 0x65 && bytes[10] === 0x69 && bytes[11] === 0x63)
+		{
+			return 3;
+		}
+		// major mif1
+		else if(bytes[8] === 0x6D && bytes[9] === 0x69 && bytes[10] === 0x66 && bytes[11] === 0x31)
+		{
+			// minor heic, checking 8 of them
+			for(let i = 16; i + 3 < bytes.length && i < 48; i += 4)
+			{
+				if(bytes[i] == 0x68 && bytes[i+1] == 0x65 && bytes[i+2] == 0x69 && bytes[i+3] == 0x63)
+				{
+					return -3;
+				}
+			}
+		}
+		// unsupported
+		return -1;
 	}
 	// unsupported
 	else
@@ -70,7 +87,10 @@ var conversionConfig =
 document.getElementById('input_label').addEventListener('change', function(e)
 {
 	const file = e.target.files[0];
-	if (!file) return;
+	if(!file)
+	{
+		return;
+	}
 
 	const reader = new FileReader();
 	reader.onload = function()
@@ -78,6 +98,10 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		// Read
 		const arrayBuffer = reader.result;
 		const charArray = new Uint8Array(arrayBuffer);
+		if(charArray.length <= 16)
+		{
+			return;
+		}
 
 		// Input
 		const bytes = Module._malloc(charArray.length);
