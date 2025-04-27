@@ -3,6 +3,9 @@
 #define STBI_NO_FAILURE_STRINGS
 #define STBI_NO_STDIO
 #include "../includes/stb_image.h"
+#include "../includes/webp_types.h"
+#include "../includes/webp_decode.h"
+#include "../includes/webp_encode.h"
 
 enum imgformat
 {
@@ -28,6 +31,16 @@ const char* ftos(imgformat f)
 	}
 }
 
+int get_webp_num_channels(const uint8_t* data, int data_size)
+{
+	WebPBitstreamFeatures features;
+	if(WebPGetFeatures(data, data_size, &features) != VP8_STATUS_OK)
+	{
+		return -1;
+	}
+	return features.has_alpha ? 4 : 3;
+}
+
 void freeInput(uint8_t* ptr, imgformat format)
 {
 	switch(format)
@@ -37,6 +50,8 @@ void freeInput(uint8_t* ptr, imgformat format)
 			stbi_image_free(ptr);
 			break;
 		case webp:
+			WebPFree(ptr);
+			break;
 		case heic:
 		default:
 			break;
@@ -63,7 +78,7 @@ extern "C"
 			std::cout << "Input size is zero bytes" << std::endl;
 			return false;
 		}
-		else if(format != png && format != jpeg)
+		else if(format != png && format != jpeg && format != webp)
 		{
 			std::cout << "Input format not supported" << std::endl;
 			return false;
@@ -77,6 +92,17 @@ extern "C"
 				pixels = stbi_load_from_memory(bytes, size, &width, &height, &channels, 0);
 				break;
 			case webp:
+				channels = get_webp_num_channels(bytes, size);
+				if(channels == 3)
+				{
+					pixels = WebPDecodeRGB(bytes, size, &width, &height);
+
+				}
+				else if(channels == 4)
+				{
+					pixels = WebPDecodeRGBA(bytes, size, &width, &height);
+				}
+				break;
 			case heic:
 			default:
 				break;
