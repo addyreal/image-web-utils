@@ -1,11 +1,13 @@
 #include <iostream>
+#include <cstring>
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_NO_FAILURE_STRINGS
 #define STBI_NO_STDIO
 #include "../includes/stb_image.h"
 #include "../includes/webp_types.h"
 #include "../includes/webp_decode.h"
-#include "../includes/webp_encode.h"
+//#include "../includes/webp_encode.h"
+#include "../includes/heif.h"
 
 enum imgformat
 {
@@ -41,6 +43,102 @@ int get_webp_num_channels(const uint8_t* data, int data_size)
 	return features.has_alpha ? 4 : 3;
 }
 
+int get_heic_num_channels(const struct heif_image* img)
+{
+	switch(heif_image_get_chroma_format(img))
+	{
+		case heif_chroma_monochrome: return 1;
+		case heif_chroma_420:
+		case heif_chroma_422:
+		case heif_chroma_444:
+		case heif_chroma_interleaved_RGB: return 3;
+		case heif_chroma_interleaved_RGBA: return 4;
+		default: return -1;
+	}
+}
+
+uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* height_ptr, int* channels_ptr)
+{
+	heif_context* context = heif_context_alloc();
+	heif_error err = heif_context_read_from_memory(context, bytes, size, nullptr);
+	if(err.code != heif_error_Ok)
+	{
+		std::cout << "HEIC: Failed to read HEIC from memory" << std::endl;
+		heif_context_free(context);
+		return nullptr;
+	}
+
+	heif_image_handle* handle = nullptr;
+	err = heif_context_get_primary_image_handle(context, &handle);
+	if(err.code != heif_error_Ok)
+	{
+		std::cout << "HEIC: Failed to get image handle" << std::endl;
+		heif_image_handle_release(handle);
+		heif_context_free(context);
+		return nullptr;
+	}
+
+	if(heif_image_handle_has_alpha_channel(handle))
+	{
+		std::cout << "HEIC: image has alpha" << std::endl;
+	}
+
+	heif_image* img = nullptr;
+	err = heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGBA, nullptr);
+	if(err.code != heif_error_Ok)
+	{
+		std::cout << "HEIC: Failed to decode image" << std::endl;
+		heif_image_release(img);
+		heif_image_handle_release(handle);
+		heif_context_free(context);
+		return nullptr;
+	}
+
+	int width, height, channels;
+	enum heif_colorspace cs = heif_image_get_colorspace(img);
+	enum heif_chroma chroma = heif_image_get_chroma_format(img);
+	switch(cs)
+	{
+		case heif_colorspace_YCbCr:
+			width = heif_image_get_width(img, heif_channel_Y);
+			height = heif_image_get_height(img, heif_channel_Y);
+			std::cout << "HEIC: YCbCr decoded" << std::endl;
+			break;
+		case heif_colorspace_RGB:
+			width = heif_image_get_width(img, heif_channel_interleaved);
+			std::cout << width << std::endl;
+			height = heif_image_get_height(img, heif_channel_interleaved);
+			break;
+		default:
+			std::cout << "HEIC: Unknown colorspace decoded" << std::endl;
+			break;
+	}
+	
+	channels = get_heic_num_channels(img);
+	*width_ptr = width;
+	*height_ptr = height;
+	*channels_ptr = channels;
+
+	int stride;
+	const uint8_t* rgba = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
+
+	uint8_t* out_rgba = new uint8_t[width * height * 4];
+	for(int y = 0; y < height; ++y)
+	{
+		std::memcpy(
+			out_rgba + y * width * 4,
+			rgba + y * stride,
+			width * 4
+		);
+	}
+
+	heif_image_release(img);
+	heif_image_handle_release(handle);
+	heif_context_free(context);
+
+	return out_rgba;
+}
+
 void freeInput(uint8_t* ptr, imgformat format)
 {
 	switch(format)
@@ -53,6 +151,8 @@ void freeInput(uint8_t* ptr, imgformat format)
 			WebPFree(ptr);
 			break;
 		case heic:
+			delete ptr;
+			break;
 		default:
 			break;
 	}
@@ -78,7 +178,7 @@ extern "C"
 			std::cout << "Input size is zero bytes" << std::endl;
 			return false;
 		}
-		else if(format != png && format != jpeg && format != webp)
+		else if(format != png && format != jpeg && format != webp && format != heic)
 		{
 			std::cout << "Input format not supported" << std::endl;
 			return false;
@@ -104,6 +204,8 @@ extern "C"
 				}
 				break;
 			case heic:
+				pixels = heic_load_from_memory(bytes, size, &width, &height, &channels);
+				break;
 			default:
 				break;
 		}
