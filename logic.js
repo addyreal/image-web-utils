@@ -165,6 +165,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		let lastX = 0;
 		let lastY = 0;
 		let isDragging = false;
+		let isTouchZooming = false;
 		canvas.classList.remove('grabbing');
 			// Render
 		function draw()
@@ -200,6 +201,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		{
 			const rect = canvas.getBoundingClientRect();
 			isDragging = true;
+			isTouchZooming = false;
 			canvas.classList.add('grabbing');
 			lastX = x - rect.left;
 			lastY = y - rect.top;
@@ -207,7 +209,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			// Move
 		function move(x, y)
 		{
-			if(!isDragging) return;
+			if(!isDragging || isTouchZooming) return;
 			const rect = canvas.getBoundingClientRect();
 
 			const dx = x - rect.left - lastX;
@@ -235,7 +237,6 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		canvas.addEventListener('mouseleave', ()=>{end()});
 		// Mobile implementation
 		let lastTouchesDist = 0;
-		let isTouchZooming = false;
 		function getTouchesDist(touch1, touch2)
 		{
 			const dx = touch1.clientX - touch2.clientX;
@@ -252,6 +253,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		}
 		function mobileStartZoom(touch1, touch2)
 		{
+			isDragging = false;
 			isTouchZooming = true;
 			lastTouchesDist = getTouchesDist(touch1, touch2);
 		}
@@ -259,7 +261,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		{
 			const rect = canvas.getBoundingClientRect();
 		
-			const zoomFactor = 1.1;
+			const zoomFactor = 1.05;
 			const touchX = getTouchesX(touch1, touch2) - rect.left;
 			const touchY = getTouchesY(touch1, touch2) - rect.top;
 			const scaleFactor = getTouchesDist(touch1, touch2) - lastTouchesDist <= 0 ? 1 / zoomFactor : zoomFactor;
