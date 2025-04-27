@@ -26,7 +26,7 @@ void freeInput(uint8_t* ptr, imgformat format)
 
 int main(void)
 {
-	std::cout << "Hello" << std::endl;
+	std::cout << "Waiting for an image" << std::endl;
 
 	return 0;
 }

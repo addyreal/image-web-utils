@@ -175,8 +175,8 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
 			context.drawImage(vCanvas, 0, 0);
 		}
-			// Zoom
-		canvas.addEventListener('wheel', (e) =>
+			// Zoom gesture
+		function zoom(e)
 		{
 			e.preventDefault();
 			const rect = canvas.getBoundingClientRect();
@@ -195,47 +195,121 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			offsetY = mouseY - worldY * scale;
 		
 			draw();
-		});
-			// Dragging logic
-		canvas.addEventListener('mousedown', (e) =>
+		}
+			// Press
+		function press(x, y)
 		{
 			const rect = canvas.getBoundingClientRect();
 			isDragging = true;
 			canvas.classList.add('grabbing');
-			lastX = e.clientX - rect.left;
-			lastY = e.clientY - rect.top;
-		});
-			// Mousemove logic
-		canvas.addEventListener('mousemove', (e) =>
+			lastX = x - rect.left;
+			lastY = y - rect.top;
+		}
+			// Move
+		function move(x, y)
 		{
 			if(!isDragging) return;
 			const rect = canvas.getBoundingClientRect();
 
-			const dx = e.clientX - rect.left - lastX;
-			const dy = e.clientY - rect.top - lastY;
+			const dx = x - rect.left - lastX;
+			const dy = y - rect.top - lastY;
 
 			offsetX += dx;
 			offsetY += dy;
 
-			lastX = e.clientX - rect.left;
-			lastY = e.clientY - rect.top;
+			lastX = x - rect.left;
+			lastY = y - rect.top;
 
 			draw();
-		});
-			// No dragging
-		canvas.addEventListener('mouseup', () => 
+		}
+			// End
+		function end()
 		{
 			isDragging = false
 			canvas.classList.remove('grabbing');
-		});
-		canvas.addEventListener('mouseleave', () => 
+		}
+		// PC implementation
+		canvas.addEventListener('wheel', zoom(e));
+		canvas.addEventListener('mousedown', press(e.clientX, e.clientY));
+		canvas.addEventListener('mousemove', move(e.clientX, e.clientY));
+		canvas.addEventListener('mouseup', end());
+		canvas.addEventListener('mouseleave', end());
+		// Mobile implementation
+		let lastTouchesDist = 0;
+		let isTouchZooming = false;
+		function getTouchesDist(touch1, touch2)
 		{
-			isDragging = false
-			canvas.classList.remove('grabbing');
-		});
+			const dx = touch1.clientX - touch2.clientX;
+			const dy = touch1.clientY - touch2.clientY;
+			return Math.hypot(dx, dy);
+		}
+		function getTouchesX(touch1, touch2)
+		{
+			return (touch1.clientX + touch2.clientX)/2
+		}
+		function getTouchesY(touch1, touch2)
+		{
+			return (touch1.clientY + touch2.clientY)/2
+		}
+		function mobileStartZoom(touch1, touch2)
+		{
+			e.preventDefault();
+			isTouchZooming = true;
+			lastTouchesDist = getTouchesDist(touch1, touch2);
+		}
+		function mobileZoom(touch1, touch2)
+		{
+			e.preventDefault();
+			const rect = canvas.getBoundingClientRect();
+		
+			const zoomFactor = 1.1;
+			const touchX = getTouchesX(touch1, touch2) - rect.left;
+			const touchY = getTouchesY(touch1, touch2) - rect.top;
+			const scaleFactor = getTouchesDist(touch1, touch2) - lastTouchesDist <= 0 ? 1 / zoomFactor : zoomFactor;
+		
+			const worldX = (touchX - offsetX) / scale;
+			const worldY = (touchY - offsetY) / scale;
+		
+			scale *= scaleFactor;
+		
+			offsetX = touchX - worldX * scale;
+			offsetY = touchY - worldY * scale;
+
+			lastTouchesDist = getTouchesDist(touch1, touch2);
+		
+			draw();
+		}
+		function mobileEnd()
+		{
+			isDragging = false;
+			isTouchZooming = false;
+		}
+		canvas.addEventListener('touchstart', function(e)
+		{
+			if(e.touches.length == 1)
+			{
+				press(e.touches[0].clientX, e.touches[0].clientY);
+			}
+			else if(e.touches.length == 2)
+			{
+				mobileStartZoom(e.touches[0], e.touches[1]);
+			}
+		}, {passive: false});
+		canvas.addEventListener('touchmove', function(e)
+		{
+			if(e.touches.length == 1)
+			{
+				move(e.touches[0].clientX, e.touches[0].clientY);
+			}
+			else if(e.touches.length == 2)
+			{
+				mobileZoom(e.touches[0], e.touches[1]);
+			}
+		}, {passive: false});
+		canvas.addEventListener('touchend', mobileEnd(), {passive: false});
+		canvas.addEventListener('touchcancel', mobileEnd(), {passive: false});
 
 		draw();
-		
 	};
 
 	reader.readAsArrayBuffer(file);
