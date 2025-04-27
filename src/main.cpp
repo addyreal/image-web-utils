@@ -17,16 +17,16 @@ const char* ftos(imgformat f)
 	switch(f)
 	{
 		case png:
-			return "png";
+			return "PNG";
 			break;
 		case jpeg:
-			return "jpeg";
+			return "JPEG";
 			break;
 		case webp:
-			return "webp";
+			return "WebP";
 			break;
 		case heic:
-			return "heic";
+			return "HEIC";
 			break;
 	}
 }
@@ -128,11 +128,11 @@ extern "C"
 		*decoded_channels_ptr = channels;
 
 		// Log
-		std::cout << "Format: " << ftos(format) << std::endl;
-		std::cout << "Width: " << width << std::endl;
-		std::cout << "Height: " << height << std::endl;
+		std::cout << "Format:   " << ftos(format) << std::endl;
+		std::cout << "Width:    " << width << std::endl;
+		std::cout << "Height:   " << height << std::endl;
 		std::cout << "Channels: " << channels << std::endl;
-		std::cout << "Size(B): " << size << std::endl;
+		std::cout << "Size:     " << size << std::endl;
 
 		freeInput(pixels, format);
 		return true;
