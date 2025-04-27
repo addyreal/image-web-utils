@@ -231,7 +231,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		// PC implementation
 		canvas.addEventListener('wheel', (e)=>{zoom(e)});
 		canvas.addEventListener('mousedown', (e)=>{press(e,clientX, e.clientY)});
-		canvas.addEventListener('mousemove', move(e.clientX, e.clientY));
+		canvas.addEventListener('mousemove', (e)=>{move(e.clientX, e.clientY)});
 		canvas.addEventListener('mouseup', ()=>{end()});
 		canvas.addEventListener('mouseleave', ()=>{end()});
 		// Mobile implementation
