@@ -205,7 +205,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			lastY = y - rect.top;
 		}
 			// Move
-		function move(e, x, y)
+		function move(x, y)
 		{
 			if(!isDragging) return;
 			const rect = canvas.getBoundingClientRect();
