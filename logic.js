@@ -102,7 +102,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		// Check for success
 		if(decodeOK == false)
 		{
-			console.log("ERROR: Decode failed");
+			outputElement.value += "Decode successfully failed";
 			Module._free(input_pixels_ptr);
 			Module._free(input_channels_ptr);
 			Module._free(input_height_ptr);
