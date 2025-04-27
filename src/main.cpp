@@ -175,7 +175,7 @@ extern "C"
 		{
 			std::cout << "Input format not supported" << std::endl;
 			std::cout << "bytes here:" << std::endl;
-			for(int i = 0; i < 36; i++)
+			for(int i = 0; i < 48; i++)
 			{
 				std::cout << (char)bytes[i];
 				if(i == 35)
