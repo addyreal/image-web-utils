@@ -96,7 +96,10 @@ h1
 
 #canvas_container
 {
-	margin-top: 25px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
 }
 
 canvas
@@ -120,4 +123,11 @@ canvas
 .hidden
 {
 	display: none;
+}
+
+.blurred
+{
+	filter: blur(4px);
+	opacity: 0.6;
+	pointer-events: none;
 }
