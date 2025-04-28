@@ -2,6 +2,7 @@ const main = document.getElementById('main');
 const config_container = document.getElementById('config_container');
 const _c_image_view = document.getElementById('_c_image_view');
 const _c_image_hide = document.getElementById('_c_image_hide');
+const preview_container = document.getElementById('preview_container');
 const canvas_container = document.getElementById('canvas_container');
 
 function clampedArrayRGBtoRGBA(rgb, w, h)
@@ -321,12 +322,12 @@ document.getElementById('input_label').addEventListener('change', function(e)
 
 _c_image_view.addEventListener('click', function()
 {
-	canvas_container.classList.toggle('hidden');
+	preview_container.classList.toggle('hidden');
 	main.classList.toggle('blurred');
 });
 
 _c_image_hide.addEventListener('click', function()
 {
-	canvas_container.classList.toggle('hidden');
+	preview_container.classList.toggle('hidden');
 	main.classList.toggle('blurred');
 });
