@@ -90,6 +90,26 @@ function formatEnumToString(int)
 	}
 }
 
+function formatStringToEnum(string)
+{
+	if(string == "png")
+	{
+		return 0;
+	}
+	else if(string == "jpeg")
+	{
+		return 1;
+	}
+	else if(string == "webp")
+	{
+		return 2;
+	}
+	else if(string == "heic")
+	{
+		return 3;
+	}
+}
+
 // Defines the output
 var conversionConfig =
 {
