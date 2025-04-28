@@ -1,9 +1,17 @@
 const main = document.getElementById('main');
-const config_container = document.getElementById('config_container');
+const preview_container = document.getElementById('preview_container');
 const _c_image_view = document.getElementById('_c_image_view');
 const _c_image_hide = document.getElementById('_c_image_hide');
-const preview_container = document.getElementById('preview_container');
+const config_popup = document.getElementById('config_popup');
+const _c_config_view = document.getElementById('_c_config_view');
+const _c_config_hide = document.getElementById('_c_config_hide');
+const config_container = document.getElementById('config_container');
 const canvas_container = document.getElementById('canvas_container');
+const config_format = document.getElementById('config_format');
+const config_quality = document.getElementById('config_quality');
+const config_quality_visual = document.getElementById('config_quality_visual');
+const config_width = document.getElementById('config_width');
+const config_height = document.getElementById('config_height');
 
 function clampedArrayRGBtoRGBA(rgb, w, h)
 {
@@ -62,6 +70,26 @@ function bytesToImageFormat(bytes)
 	}
 }
 
+function formatEnumToString(int)
+{
+	if(int == 0)
+	{
+		return "png";
+	}
+	else if(int == 1)
+	{
+		return "jpeg";
+	}
+	else if(int == 2)
+	{
+		return "webp";
+	}
+	else if(int == 3)
+	{
+		return "heic";
+	}
+}
+
 // Defines the output
 var conversionConfig =
 {
@@ -69,6 +97,15 @@ var conversionConfig =
 	quality: 90,
 	width: 250,
 	height: 250,
+}
+
+function applyConfig()
+{
+	conversionConfig.format = parseInt(config_format.value, 10);
+	conversionConfig.quality = parseInt(config_quality.value, 10);
+	conversionConfig.width = parseInt(config_width.value, 10);
+	conversionConfig.height = parseInt(config_height.value, 10);
+	// delete blob or something
 }
 
 document.getElementById('input_label').addEventListener('change', function(e)
@@ -139,6 +176,17 @@ document.getElementById('input_label').addEventListener('change', function(e)
 
 		// Enable configging
 		config_container.classList.remove('hidden');
+
+		// Initialize config
+		config_format.value = formatEnumToString(input_format);
+		config_quality.value = input_format == 0 ? 100 : 90;
+		config_quality_visual.textContent = config_quality.value;
+		config_width.value = input_width;
+		config_height.value = input_height;
+		conversionConfig.format = input_format;
+		conversionConfig.quality = input_format == 0 ? 100 : 90;
+		conversionConfig.width = input_width;
+		conversionConfig.height = input_height;
 
 		// Make image
 		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
@@ -331,3 +379,18 @@ _c_image_hide.addEventListener('click', function()
 	preview_container.classList.toggle('hidden');
 	main.classList.toggle('blurred');
 });
+
+_c_config_view.addEventListener('click', function()
+{
+	config_popup.classList.toggle('hidden');
+	main.classList.toggle('blurred');
+});
+
+_c_config_hide.addEventListener('click', function()
+{
+	config_popup.classList.toggle('hidden');
+	main.classList.toggle('blurred');
+	applyConfig();
+});
+
+config_quality.addEventListener("input", ()=>{config_quality_visual.textContent = config_quality.value;});
