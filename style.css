@@ -124,7 +124,7 @@ h1
 	text-align: center;
 	font-weight: bold;
 	position: relative;
-	left: 0;
+	left: calc(100% - 25px);
 }
 
 canvas
