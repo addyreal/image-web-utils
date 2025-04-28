@@ -103,6 +103,30 @@ h1
 	border: 1px solid white;
 }
 
+#preview_titlebar
+{
+	height: 25px;
+	width: 100%;
+	background-color: black;
+	border-bottom: 1px solid white;
+	position: relative;
+}
+
+#_c_image_hide
+{
+	height: 25px;
+	width: 25px;
+	background-color: white;
+	color: black;
+	font-family: 'Lucida Console', Monaco, monospace;
+	font-size: 1.2rem;
+	line-height: 25px;
+	text-align: center;
+	font-weight: bold;
+	position: relative;
+	left: 0;
+}
+
 canvas
 {
 	cursor: grab;
