@@ -94,12 +94,13 @@ h1
 	border: 1px solid white;
 }
 
-#canvas_container
+#preview_container
 {
 	position: absolute;
 	left: 50%;
 	top: 50%;
 	transform: translate(-50%, -50%);
+	border: 1px solid white;
 }
 
 canvas
@@ -111,7 +112,6 @@ canvas
 {
 	display: block;
 	margin: 0 auto;
-	border: 1px solid white;
 	background: linear-gradient(135deg, rgb(255, 0, 0) 0%, rgba(0, 255, 0, 0.5) 50%, rgb(0, 0, 255) 100%);
 }
 
