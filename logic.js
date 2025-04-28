@@ -121,7 +121,7 @@ var conversionConfig =
 
 function applyConfig()
 {
-	conversionConfig.format = parseInt(config_format.value, 10);
+	conversionConfig.format = formatStringToEnum(config_format.value);
 	conversionConfig.quality = parseInt(config_quality.value, 10);
 	conversionConfig.width = parseInt(config_width.value, 10);
 	conversionConfig.height = parseInt(config_height.value, 10);
