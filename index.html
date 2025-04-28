@@ -9,19 +9,43 @@
 	<body>
 		<div id="bg"></div>
 		<main id="main">
-			<h1>Hello</h1>
+			<h1>Image conversion</h1>
 			<label for="input" id="input_label">
 				<input type="file" id="input" accept="image/png, image/jpeg, image/webp, image/heic"/>
 				Browse for image...
 			</label>
-			<textarea id="output" spellcheck="false"></textarea>
-			<div id="config_container" class="hidden">
+			<div id="middle_container">
+				<textarea id="output" spellcheck="false"></textarea>
+			</div>
+			<div id="config_container" class="hidden flex">
 				<button id="_c_image_view">View</button>
+				<button id="_c_config_view">Config</button>
 			</div>
 		</main>
-		<div id="preview_container" class="hidden">
-			<div id="preview_title"><button id="_c_image_hide">X</button></div>
+		<div id="preview_container" class="popup_window hidden">
+			<div class="preview_title"><button id="_c_image_hide">X</button></div>
 			<div id="canvas_container"></div>
+		</div>
+		<div id="config_popup" class="popup_window hidden">
+			<div class="preview_title"><button id="_c_config_hide">X</button></div>
+			<div id="config_options">
+				<span>Format:</span>
+				<select id="config_format">
+					<option value="png">PNG</option>
+					<option value="jpeg">JPEG</option>
+					<option value="webp">WebP</option>
+					<option value="heic">HEIC</option>
+				</select>
+				<span>Quality:</span>
+				<div id="config_quality_container">
+					<input type="range" id="config_quality" min="0" max="100" step="1"/>
+					<span id="config_quality_visual">90</span>
+				</div>
+				<span>Width:</span>
+				<input type="number" id="config_width" value="250"/>
+				<span>Height:</span>
+				<input type="number" id="config_height" value="250"/>
+			</div>
 		</div>
 	</body>
 	<script type="text/javascript" src="module-init.js"></script>

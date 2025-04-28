@@ -84,6 +84,7 @@ h1
 #config_container
 {
 	margin-top: 25px;
+	gap: 20px;
 }
 
 #config_container button
@@ -94,7 +95,7 @@ h1
 	border: 1px solid white;
 }
 
-#preview_container
+.popup_window
 {
 	position: absolute;
 	left: 50%;
@@ -103,7 +104,7 @@ h1
 	border: 1px solid white;
 }
 
-#preview_title
+.preview_title
 {
 	height: 25px;
 	width: 100%;
@@ -112,7 +113,7 @@ h1
 	position: relative;
 }
 
-#_c_image_hide
+.preview_title button
 {
 	height: 25px;
 	width: 25px;
@@ -139,12 +140,57 @@ canvas
 	background: linear-gradient(135deg, rgb(255, 0, 0) 0%, rgba(0, 255, 0, 0.5) 50%, rgb(0, 0, 255) 100%);
 }
 
+#config_options
+{
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 50px;
+	font-size: 1.2rem;
+	background: rgba(0,0,0,0.5);
+}
+
+#config_options > span
+{
+	margin-top: 10px;
+}
+
+#config_options > select, #config_options > input
+{
+	background-color: black;
+	border: 1px solid gray;
+	margin: 0;
+	padding: 5px 10px;
+	font-family: 'Lucida Console', Monaco, monospace;
+	font-size: 1.2rem;
+	color: white;
+}
+
+#config_quality_container
+{
+	display: flex;
+	justify-content: space-between;
+	gap: 20px;
+}
+
+#config_quality_container input
+{
+	accent-color: gray;
+	margin: 0;
+	width: 100%;
+}
+
 .grabbing
 {
 	cursor: grabbing;
 }
 
-.hidden
+.flex
+{
+	display: flex;
+}
+
+body .hidden
 {
 	display: none;
 }
