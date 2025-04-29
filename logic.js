@@ -457,7 +457,7 @@ function ConvertCall(config, shit)
 	switch(config.format)
 	{
 		case 0:
-			Module._STBIW_FREE(output_bytes);
+			Module._free(output_bytes);
 			break;
 		case 1:
 			Module.free(output_bytes);

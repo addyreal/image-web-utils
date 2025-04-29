@@ -310,7 +310,6 @@ extern "C"
 				break;
 		}
 
-		//STBIW_FREE(*blob_ptr);
 		//free(*blob_ptr)
 		//WebPFree(*blob_ptr);
 		free(resized_pixels);
