@@ -5,6 +5,7 @@ const _c_image_hide = document.getElementById('_c_image_hide');
 const config_popup = document.getElementById('config_popup');
 const _c_config_view = document.getElementById('_c_config_view');
 const _c_config_hide = document.getElementById('_c_config_hide');
+const _c_convert_encode = document.getElementById('_c_convert_encode');
 const config_container = document.getElementById('config_container');
 const canvas_container = document.getElementById('canvas_container');
 const config_format = document.getElementById('config_format');
@@ -119,6 +120,14 @@ var conversionConfig =
 	height: 250,
 }
 
+var TEMPSHITFIX = 
+{
+	pixels: 0,
+	width: 0,
+	height: 0,
+	channels: 0,
+}
+
 function applyConfig()
 {
 	conversionConfig.format = formatStringToEnum(config_format.value);
@@ -207,6 +216,12 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		conversionConfig.quality = input_format == 0 ? 100 : 90;
 		conversionConfig.width = input_width;
 		conversionConfig.height = input_height;
+
+		// initialize shit fix
+		TEMPSHITFIX.pixels = input_pixels;
+		TEMPSHITFIX.width = input_width;
+		TEMPSHITFIX.height = input_height;
+		TEMPSHITFIX.channels = input_channels;
 
 		// Make image
 		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
@@ -414,3 +429,53 @@ _c_config_hide.addEventListener('click', function()
 });
 
 config_quality.addEventListener("input", ()=>{config_quality_visual.textContent = config_quality.value;});
+
+
+function ConvertCall(config, shit)
+{
+	if(shit.channels == 0) return;
+
+	const output_bytes_ptr = Module._malloc(4);
+	const output_size_ptr = Module._malloc(4);
+
+	encodeOK = Module._Encode(shit.pixels, output_bytes_ptr, output_size_ptr, shit.width, shit.height, shit.channels, config.format, config.quality, config.width, config.height)
+
+	if(encodeOK == false)
+	{
+		outputElement.value += "Encode successfully failed";
+
+		Module._free(output_bytes_ptr);
+		Module._free(output_size_ptr);
+	}
+
+	output_bytes = Module.getValue(output_bytes_ptr, '*');
+	output_size = Module.getValue(output_size_ptr, 'i32');
+
+
+	console.log("Success (?) " + output_size);
+
+	switch(config.format)
+	{
+		case 0:
+			Module._free(output_bytes);
+			break;
+		case 1:
+			Module.free(output_bytes);
+			break;
+		case 2:
+			Module.WebPFree(output_bytes);
+			break;
+		case 3:
+			break;
+	}
+
+	Module._free(output_bytes_ptr);
+	Module._free(output_size_ptr);
+}
+
+
+
+_c_convert_encode.addEventListener('click', function()
+{
+	ConvertCall(conversionConfig, TEMPSHITFIX);
+});
