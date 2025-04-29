@@ -1,12 +1,19 @@
 #include <iostream>
 #include <cstring>
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBI_NO_FAILURE_STRINGS
+#define STBI_ONLY_JPEG
+#define STBI_ONLY_PNG
 #define STBI_NO_STDIO
+#define STBI_WRITE_NO_STDIO
 #include "../includes/stb_image.h"
+#include "../includes/stb_image_resize2.h"
+#include "../includes/stb_image_write.h"
 #include "../includes/webp_types.h"
 #include "../includes/webp_decode.h"
-//#include "../includes/webp_encode.h"
+#include "../includes/webp_encode.h"
 #include "../includes/heif.h"
 
 enum imgformat
@@ -132,6 +139,26 @@ uint8_t* heic_load_from_memory(uint8_t* bytes, int size, int* width_ptr, int* he
 	return out_rgba;
 }
 
+struct JPEG_buffer {
+    uint8_t* data;
+    size_t size;
+};
+
+void jpeg_write_callback(void* context, void* data, int size)
+{
+    JPEG_buffer* buffer = (JPEG_buffer*)context;
+    buffer->data = (unsigned char*)realloc(buffer->data, buffer->size + size);
+    memcpy(buffer->data + buffer->size, data, size);
+    buffer->size += size;
+}
+
+uint8_t* write_jpeg_to_memory(unsigned char* pixels, int w, int h, int channels, int quality, int* out_size) {
+    JPEG_buffer buffer = { NULL, 0 };
+    stbi_write_jpg_to_func(jpeg_write_callback, &buffer, w, h, channels, pixels, quality);
+    *out_size = buffer.size;
+    return buffer.data; // free when done
+}
+
 void freeInput(uint8_t* ptr, imgformat format)
 {
 	switch(format)
@@ -235,6 +262,58 @@ extern "C"
 		std::cout << "Size:     " << size << std::endl;
 
 		freeInput(pixels, format);
+		return true;
+	}
+}
+
+extern "C"
+{
+	bool Encode(uint8_t* pixels, uint8_t** blob_ptr, int* blob_size, imgformat i_format, int i_width, int i_height, int i_channels, imgformat t_format, int t_quality, int t_width, int t_height)
+	{
+		uint8_t* resized_pixels = (uint8_t*)malloc(t_width * t_height * i_channels);
+		if(stbir_resize_uint8_srgb(pixels, i_width, i_height, 0, resized_pixels, t_width, t_height, 0, (stbir_pixel_layout)i_channels) == 0)
+		{
+			std::cout << "Image failed to resize" << std::endl;
+			free(resized_pixels);
+			return false;
+		}
+		
+		switch(t_format)
+		{
+			case png:
+				*blob_ptr =  stbi_write_png_to_mem(resized_pixels, t_width * i_channels, t_width, t_height, i_channels, blob_size);
+				break;
+			case jpeg:
+				*blob_ptr =  write_jpeg_to_memory(resized_pixels, t_width, t_height, i_channels, t_quality, blob_size);
+				break;
+			case webp:
+				switch(i_channels)
+				{
+					case 3:
+						*blob_size =  WebPEncodeRGB(resized_pixels, t_width, t_height, t_width * i_channels, t_quality, blob_ptr);
+						break;
+					case 4:
+						*blob_size =  WebPEncodeRGBA(resized_pixels, t_width, t_height, t_width * i_channels, t_quality, blob_ptr);
+						break;
+					default:
+						free(resized_pixels);
+						return true;
+						break;
+				}
+			case heic:
+				free(resized_pixels);
+				return true;
+				break;
+			default:
+				free(resized_pixels);
+				return true;
+				break;
+		}
+
+		//STBIW_FREE(*blob_ptr);
+		//free(*blob_ptr)
+		//WebPFree(*blob_ptr);
+		free(resized_pixels);
 		return true;
 	}
 }
