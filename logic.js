@@ -446,6 +446,8 @@ function ConvertCall(config, shit)
 
 		Module._free(output_bytes_ptr);
 		Module._free(output_size_ptr);
+
+		return;
 	}
 
 	output_bytes = Module.getValue(output_bytes_ptr, '*');
