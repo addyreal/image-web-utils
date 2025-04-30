@@ -431,6 +431,7 @@ _c_config_hide.addEventListener('click', function()
 config_quality.addEventListener("input", ()=>{config_quality_visual.textContent = config_quality.value;});
 
 
+
 function ConvertCall(config, shit)
 {
 	if(shit.channels == 0) return;
@@ -452,6 +453,25 @@ function ConvertCall(config, shit)
 
 	output_bytes = Module.getValue(output_bytes_ptr, '*');
 	output_size = Module.getValue(output_size_ptr, 'i32');
+
+	if(output_size != 0 && output_size != NaN)
+	{
+		const resultArray = new Uint8Array(Module.HEAPU8.buffer, output_bytes, output_size);
+
+		// Prepare download
+		//const download_div = document.getElementById('output_image');
+		//download_div.innerHTML = '';
+
+		// Make blob
+		const blob = new Blob([resultArray], { type: "image/" + config.format});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+			a.href = url;
+			a.download = 'converted_image.' + config.format;
+			a.click();
+			//a.textContent = 'Download result';
+			//download_div.appendChild(a);
+	}
 
 	switch(config.format)
 	{
