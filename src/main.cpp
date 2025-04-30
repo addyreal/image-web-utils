@@ -270,8 +270,8 @@ extern "C"
 {
 	bool Encode(uint8_t* pixels, uint8_t** blob_ptr, int* blob_size, int i_width, int i_height, int i_channels, imgformat t_format, int t_quality, int t_width, int t_height)
 	{
-		unsigned char* resized_pixels = (unsigned char*)malloc(t_width * t_height * i_channels);
-		if(stbir_resize_uint8_srgb((unsigned char*)pixels, i_width, i_height, 0, resized_pixels, t_width, t_height, 0, (stbir_pixel_layout)i_channels) == 0)
+		uint8_t* resized_pixels = (uint8_t*)malloc(t_width * t_height * i_channels);
+		if(stbir_resize_uint8_srgb(pixels, i_width, i_height, 0, resized_pixels, t_width, t_height, 0, (stbir_pixel_layout)i_channels) == 0)
 		{
 			std::cout << "Image failed to resize" << std::endl;
 			free(resized_pixels);
