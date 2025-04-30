@@ -8,9 +8,9 @@
 #define STBI_ONLY_PNG
 #define STBI_NO_STDIO
 #define STBI_WRITE_NO_STDIO
-#include "../includes/stb_image.hpp"
-#include "../includes/stb_image_resize2.hpp"
-#include "../includes/stb_image_write.hpp"
+#include "../includes/stb_image.h"
+#include "../includes/stb_image_resize2.h"
+#include "../includes/stb_image_write.h"
 #include "../includes/webp_types.h"
 #include "../includes/webp_decode.h"
 #include "../includes/webp_encode.h"
