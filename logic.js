@@ -439,9 +439,7 @@ function ConvertCall(config, shit)
 	const output_bytes_ptr = Module._malloc(4);
 	const output_size_ptr = Module._malloc(4);
 
-	encodeOK = Module._Encode(shit.pixels, output_bytes_ptr, output_size_ptr, shit.width, shit.height, shit.channels, config.format, config.quality, config.width, config.height)
-
-	if(encodeOK == true) console.log("success");
+	encodeOK = Module._Encode(shit.pixels, output_bytes_ptr, output_size_ptr, shit.width, shit.height, shit.channels, config.format, config.quality, config.width, config.height);
 
 	if(encodeOK == false)
 	{
@@ -458,23 +456,20 @@ function ConvertCall(config, shit)
 
 	if(output_size != 0 && output_size != NaN)
 	{
-		console.log("downloading");
 		const resultArray = new Uint8Array(Module.HEAPU8.buffer, output_bytes, output_size);
 
 		// Prepare download
-		//const download_div = document.getElementById('output_image');
-		//download_div.innerHTML = '';
+		const download_div = document.getElementById('output_image');
+		download_div.innerHTML = '';
 
 		// Make blob
 		const blob = new Blob([resultArray], { type: "image/" + config.format});
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 			a.href = url;
-			a.download = 'converted_image.' + config.format;
-			document.body.appendChild(a);
-			a.click();
-			//a.textContent = 'Download result';
-			//download_div.appendChild(a);
+			a.download = 'converted_image.' + formatEnumToString(config.format);
+			a.textContent = 'Download result';
+			download_div.appendChild(a);
 	}
 
 	switch(config.format)
