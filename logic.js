@@ -435,7 +435,12 @@ function ConvertCall(config, shit)
 {
 	if(shit.channels == 0) return;
 
+	console.log(shit.pixels.length);
 	console.log(shit.width);
+	console.log(shit.height);
+	console.log(shit.channels);
+	console.log(config.width);
+	console.log(config.height);
 
 	const output_bytes_ptr = Module._malloc(4);
 	const output_size_ptr = Module._malloc(4);
