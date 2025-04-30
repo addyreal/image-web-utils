@@ -223,9 +223,6 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		TEMPSHITFIX.height = input_height;
 		TEMPSHITFIX.channels = input_channels;
 
-		//debug here
-		ConvertCall(conversionConfig, TEMPSHITFIX);
-
 		// Make image
 		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
 		const rgbaPixels = clampedArrayRGBA(imagePixels, input_width, input_height, input_channels);
@@ -455,9 +452,6 @@ function ConvertCall(config, shit)
 
 	output_bytes = Module.getValue(output_bytes_ptr, '*');
 	output_size = Module.getValue(output_size_ptr, 'i32');
-
-
-	console.log("Success (?) " + output_size);
 
 	switch(config.format)
 	{
