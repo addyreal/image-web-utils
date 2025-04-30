@@ -441,6 +441,8 @@ function ConvertCall(config, shit)
 
 	encodeOK = Module._Encode(shit.pixels, output_bytes_ptr, output_size_ptr, shit.width, shit.height, shit.channels, config.format, config.quality, config.width, config.height)
 
+	if(encodeOK == true) console.log("success");
+
 	if(encodeOK == false)
 	{
 		outputElement.value += "Encode successfully failed";
@@ -456,6 +458,7 @@ function ConvertCall(config, shit)
 
 	if(output_size != 0 && output_size != NaN)
 	{
+		console.log("downloading");
 		const resultArray = new Uint8Array(Module.HEAPU8.buffer, output_bytes, output_size);
 
 		// Prepare download
@@ -468,6 +471,7 @@ function ConvertCall(config, shit)
 		const a = document.createElement('a');
 			a.href = url;
 			a.download = 'converted_image.' + config.format;
+			document.body.appendChild(a);
 			a.click();
 			//a.textContent = 'Download result';
 			//download_div.appendChild(a);
