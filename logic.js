@@ -459,11 +459,11 @@ function ConvertCall(config, shit)
 		const resultArray = new Uint8Array(Module.HEAPU8.buffer, output_bytes, output_size);
 
 		// Prepare download
-		const download_div = document.createElement('download_div');
+		const download_div = document.getElementById('download_div');
 		download_div.innerHTML = '';
 
 		// Make blob
-		const blob = new Blob([resultArray], { type: "image/" + config.format});
+		const blob = new Blob([resultArray], { type: "image/" + formatEnumToString(config.format)});
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 			a.href = url;
