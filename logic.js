@@ -459,7 +459,7 @@ function ConvertCall(config, shit)
 		const resultArray = new Uint8Array(Module.HEAPU8.buffer, output_bytes, output_size);
 
 		// Prepare download
-		const download_div = document.getElementById('output_image');
+		const download_div = document.createElement('download_div');
 		download_div.innerHTML = '';
 
 		// Make blob
@@ -470,6 +470,7 @@ function ConvertCall(config, shit)
 			a.download = 'converted_image.' + formatEnumToString(config.format);
 			a.textContent = 'Download result';
 			download_div.appendChild(a);
+			download_div.classList.remove('hidden');
 	}
 
 	switch(config.format)
