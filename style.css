@@ -94,6 +94,10 @@ h1
 	padding: 5px 15px;
 	border: 1px solid white;
 	cursor: pointer;
+}
+
+#config_container a
+{
 	text-decoration: none;
 	color: white;
 }
