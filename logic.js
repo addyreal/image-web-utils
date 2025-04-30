@@ -435,6 +435,8 @@ function ConvertCall(config, shit)
 {
 	if(shit.channels == 0) return;
 
+	let buffer = new Uint8Array(Module.HEAPU8.buffer, shit.pixels, shit.width * shit.height * shit.channels);
+	console.log(buffer.length);
 	console.log(shit.pixels.length);
 	console.log(shit.width);
 	console.log(shit.height);
