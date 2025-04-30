@@ -94,6 +94,8 @@ h1
 	padding: 5px 15px;
 	border: 1px solid white;
 	cursor: pointer;
+	text-decoration: none;
+	color: white;
 }
 
 .popup_window
