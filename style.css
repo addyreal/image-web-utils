@@ -87,7 +87,7 @@ h1
 	gap: 20px;
 }
 
-#config_container button
+#config_container>*
 {
 	font-family: 'Lucida Console', Monaco, monospace;
 	font-size: 1.2rem;
