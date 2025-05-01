@@ -478,8 +478,8 @@ function ConvertCall(config, input)
 	// Make blob downloadable
 	if(output_size != 0 && output_size != NaN)
 	{
-		// View bytes
-		const resultArray = new Uint8Array(Module.HEAPU8.buffer, output_bytes, output_size);
+		// Copy bytes
+		const resultArray = new Uint8Array(Module.HEAPU8.slice(output_bytes, output_bytes + output_size));
 
 		// Prepare download
 		download_div.innerHTML = '';
