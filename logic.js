@@ -482,8 +482,8 @@ function ConvertCall(config, input)
 	output_size = Module.getValue(output_size_ptr, 'i32');
 
 	// Delete used pointers
-	Module._free(output_bytes_ptr);
-	Module._free(output_size_ptr);
+	//Module._free(output_bytes_ptr);
+	//Module._free(output_size_ptr);
 
 	// Make blob downloadable
 	//if(output_size != 0 && output_size != NaN)
