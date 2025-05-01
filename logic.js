@@ -148,6 +148,9 @@ document.getElementById('input_label').addEventListener('change', function(e)
 	const reader = new FileReader();
 	reader.onload = function()
 	{
+		// Disable configging
+		config_container.classList.add('hidden');
+
 		// Read
 		const arrayBuffer = reader.result;
 		const charArray = new Uint8Array(arrayBuffer);
@@ -208,9 +211,6 @@ document.getElementById('input_label').addEventListener('change', function(e)
 			--------------------
 		*/
 
-		// Enable configging
-		config_container.classList.remove('hidden');
-
 		// Initialize config
 		config_format.value = formatEnumToString(input_format);
 		config_quality.value = input_format == 0 ? 100 : 90;
@@ -225,7 +225,6 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		// Copy decode output
 		decodedImage.pixels = new Uint8Array(input_width * input_height * input_channels);
 		decodedImage.pixels.set(Module.HEAPU8.subarray(input_pixels, input_pixels + input_width * input_height * input_channels));
-		Module._free(input_pixels);
 		decodedImage.width = input_width;
 		decodedImage.height = input_height;
 		decodedImage.channels = input_channels;
@@ -407,6 +406,9 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		canvas.addEventListener('touchcancel', ()=>{mobileEnd()}, {passive: false});
 
 		draw();
+
+		// Enable configging
+		config_container.classList.remove('hidden');
 	};
 
 	reader.readAsArrayBuffer(file);
