@@ -159,22 +159,25 @@ uint8_t* write_jpeg_to_memory(unsigned char* pixels, int w, int h, int channels,
     return buffer.data; // free when done
 }
 
-void freeDecodeMalloc(uint8_t* ptr, imgformat format)
+extern "C"
 {
-	switch(format)
+	void freeDecodeMalloc(uint8_t* ptr, imgformat format)
 	{
-		case png:
-		case jpeg:
-			stbi_image_free(ptr);
-			break;
-		case webp:
-			WebPFree(ptr);
-			break;
-		case heic:
-			delete ptr;
-			break;
-		default:
-			break;
+		switch(format)
+		{
+			case png:
+			case jpeg:
+				stbi_image_free(ptr);
+				break;
+			case webp:
+				WebPFree(ptr);
+				break;
+			case heic:
+				delete ptr;
+				break;
+			default:
+				break;
+		}
 	}
 }
 
