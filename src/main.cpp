@@ -332,7 +332,7 @@ extern "C"
 				break;
 		}
 
-		free(resized_pixels);
+		//free(resized_pixels);
 		return true;
 	}
 }
