@@ -224,7 +224,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 
 		// Copy decode output
 		decodedImage.pixels = new Uint8Array(input_width * input_height * input_channels);
-		decodedImage.pixels.set(Module.HEAPU8.subarray(input_pixels, input_pixels + size));
+		decodedImage.pixels.set(Module.HEAPU8.subarray(input_pixels, input_pixels + input_width * input_height * input_channels));
 		Module._free(input_pixels);
 		decodedImage.width = input_width;
 		decodedImage.height = input_height;
