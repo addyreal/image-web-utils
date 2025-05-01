@@ -476,8 +476,8 @@ function ConvertCall(config, input)
 	Module._free(output_size_ptr);
 
 	// Make blob downloadable
-	if(output_size != 0 && output_size != NaN)
-	{
+	//if(output_size != 0 && output_size != NaN)
+	//{
 		// Copy bytes
 		const resultArray = new Uint8Array(Module.HEAPU8.slice(output_bytes, output_bytes + output_size));
 		resultArray.set(Module.HEAPU8.subarray(output_bytes, output_bytes + output_size));
@@ -494,7 +494,7 @@ function ConvertCall(config, input)
 			a.textContent = 'Download result';
 			download_div.appendChild(a);
 			download_div.classList.remove('hidden');
-	}
+	//}
 
 	// Free blob bytes
 	//Module._freeEncodeMalloc(output_bytes, config.format);
