@@ -480,6 +480,7 @@ function ConvertCall(config, input)
 	{
 		// Copy bytes
 		const resultArray = new Uint8Array(Module.HEAPU8.slice(output_bytes, output_bytes + output_size));
+		resultArray.set(Module.HEAPU8.subarray(output_bytes, output_bytes + output_size));
 
 		// Prepare download
 		download_div.innerHTML = '';
