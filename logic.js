@@ -151,6 +151,9 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		// Disable configging
 		config_container.classList.add('hidden');
 
+		// Disable download
+		download_div.classList.add('hidden');
+
 		// Read
 		const arrayBuffer = reader.result;
 		const charArray = new Uint8Array(arrayBuffer);
@@ -179,7 +182,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		{
 			outputElement.value += "Decode successfully failed";
 			const internal_malloc = Module.getValue(input_pixels_ptr, '*');
-			Module._freeDecodeMalloc(internal_malloc);
+			Module._freeDecodeMalloc(internal_malloc, input_format);
 			Module._free(input_pixels_ptr);
 			Module._free(input_channels_ptr);
 			Module._free(input_height_ptr);
@@ -230,7 +233,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		decodedImage.channels = input_channels;
 
 		// Free the pixels
-		Module._freeDecodeMalloc(input_pixels);
+		Module._freeDecodeMalloc(input_pixels, input_format);
 
 		// Make image
 		const rgbaPixels = clampedArrayRGBA(decodedImage.pixels, input_width, input_height, input_channels);
@@ -441,17 +444,19 @@ _c_config_hide.addEventListener('click', function()
 
 config_quality.addEventListener("input", ()=>{config_quality_visual.textContent = config_quality.value;});
 
-
-
-function ConvertCall(config, shit)
+function ConvertCall(config, input)
 {
-	if(shit.channels == 0) return;
+	// Abort default input
+	if(input.channels == 0) return;
 
+	// Retrieval ptrs
 	const output_bytes_ptr = Module._malloc(4);
 	const output_size_ptr = Module._malloc(4);
 
-	encodeOK = Module._Encode(shit.pixels, output_bytes_ptr, output_size_ptr, shit.width, shit.height, shit.channels, config.format, config.quality, config.width, config.height);
+	// Call
+	encodeOK = Module._Encode(input.pixels, output_bytes_ptr, output_size_ptr, input.width, input.height, input.channels, config.format, config.quality, config.width, config.height);
 
+	// Fail, not past encoding rn
 	if(encodeOK == false)
 	{
 		outputElement.value += "Encode successfully failed";
@@ -462,11 +467,18 @@ function ConvertCall(config, shit)
 		return;
 	}
 
+	// Retrieve blob info
 	output_bytes = Module.getValue(output_bytes_ptr, '*');
 	output_size = Module.getValue(output_size_ptr, 'i32');
 
+	// Delete used pointers
+	Module._free(output_bytes_ptr);
+	Module._free(output_size_ptr);
+
+	// Make blob downloadable
 	if(output_size != 0 && output_size != NaN)
 	{
+		// View bytes
 		const resultArray = new Uint8Array(Module.HEAPU8.buffer, output_bytes, output_size);
 
 		// Prepare download
@@ -483,26 +495,9 @@ function ConvertCall(config, shit)
 			download_div.classList.remove('hidden');
 	}
 
-	switch(config.format)
-	{
-		case 0:
-			Module._free(output_bytes);
-			break;
-		case 1:
-			Module.free(output_bytes);
-			break;
-		case 2:
-			Module.WebPFree(output_bytes);
-			break;
-		case 3:
-			break;
-	}
-
-	Module._free(output_bytes_ptr);
-	Module._free(output_size_ptr);
+	// Free blob bytes
+	Module._freeEncodeMalloc(output_bytes, config.format);
 }
-
-
 
 _c_convert_encode.addEventListener('click', function()
 {
