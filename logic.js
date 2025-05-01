@@ -13,6 +13,7 @@ const config_quality = document.getElementById('config_quality');
 const config_quality_visual = document.getElementById('config_quality_visual');
 const config_width = document.getElementById('config_width');
 const config_height = document.getElementById('config_height');
+const download_div = document.getElementById('download_div');
 
 function clampedArrayRGBtoRGBA(rgb, w, h)
 {
@@ -120,7 +121,8 @@ var conversionConfig =
 	height: 250,
 }
 
-var TEMPSHITFIX = 
+// Copies decoded image data, so it can free
+var decodedImage = 
 {
 	pixels: 0,
 	width: 0,
@@ -134,7 +136,8 @@ function applyConfig()
 	conversionConfig.quality = parseInt(config_quality.value, 10);
 	conversionConfig.width = parseInt(config_width.value, 10);
 	conversionConfig.height = parseInt(config_height.value, 10);
-	// delete blob or something
+	download_div.innerHTML = '';
+	download_div.classList.add('hidden');
 }
 
 document.getElementById('input_label').addEventListener('change', function(e)
@@ -172,6 +175,8 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		if(decodeOK == false)
 		{
 			outputElement.value += "Decode successfully failed";
+			const internal_malloc = Module.getValue(input_pixels_ptr, '*');
+			Module._freeDecodeMalloc(internal_malloc);
 			Module._free(input_pixels_ptr);
 			Module._free(input_channels_ptr);
 			Module._free(input_height_ptr);
@@ -186,7 +191,7 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		const input_height = Module.getValue(input_height_ptr, 'i32');
 		const input_channels = Module.getValue(input_channels_ptr, 'i32');
 
-		// Delete pointers
+		// Delete used pointers
 		Module._free(input_pixels_ptr);
 		Module._free(input_channels_ptr);
 		Module._free(input_height_ptr);
@@ -217,15 +222,19 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		conversionConfig.width = input_width;
 		conversionConfig.height = input_height;
 
-		// initialize shit fix
-		TEMPSHITFIX.pixels = input_pixels;
-		TEMPSHITFIX.width = input_width;
-		TEMPSHITFIX.height = input_height;
-		TEMPSHITFIX.channels = input_channels;
+		// Copy decode output
+		decodedImage.pixels = new Uint8Array(input_width * input_height * input_channels);
+		decodedImage.pixels.set(Module.HEAPU8.subarray(input_pixels, input_pixels + size));
+		Module._free(input_pixels);
+		decodedImage.width = input_width;
+		decodedImage.height = input_height;
+		decodedImage.channels = input_channels;
+
+		// Free the pixels
+		Module._freeDecodeMalloc(input_pixels);
 
 		// Make image
-		const imagePixels = new Uint8Array(Module.HEAPU8.buffer, input_pixels, input_width * input_height * input_channels);
-		const rgbaPixels = clampedArrayRGBA(imagePixels, input_width, input_height, input_channels);
+		const rgbaPixels = clampedArrayRGBA(decodedImage.pixels, input_width, input_height, input_channels);
 		const imageData = new ImageData(rgbaPixels, input_width, input_height);
 
 		// Make main canvas
@@ -459,7 +468,6 @@ function ConvertCall(config, shit)
 		const resultArray = new Uint8Array(Module.HEAPU8.buffer, output_bytes, output_size);
 
 		// Prepare download
-		const download_div = document.getElementById('download_div');
 		download_div.innerHTML = '';
 
 		// Make blob
@@ -496,5 +504,5 @@ function ConvertCall(config, shit)
 
 _c_convert_encode.addEventListener('click', function()
 {
-	ConvertCall(conversionConfig, TEMPSHITFIX);
+	ConvertCall(conversionConfig, decodedImage);
 });

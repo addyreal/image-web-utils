@@ -159,7 +159,7 @@ uint8_t* write_jpeg_to_memory(unsigned char* pixels, int w, int h, int channels,
     return buffer.data; // free when done
 }
 
-void freeInput(uint8_t* ptr, imgformat format)
+void freeDecodeMalloc(uint8_t* ptr, imgformat format)
 {
 	switch(format)
 	{
@@ -187,7 +187,9 @@ int main(void)
 
 extern "C"
 {
-	bool Decode(uint8_t* bytes, int size, imgformat format, uint8_t** decoded_pixel_ptr, int* decoded_width_ptr, int* decoded_height_ptr, int* decoded_channels_ptr)
+	// writes into decoded_pixels_ptr, decoded_width_ptr, decoded_height_ptr, decoded_channels_ptr
+	// allocated "pixels", writes it into decoded_pixels_ptr
+	bool Decode(uint8_t* bytes, int size, imgformat format, uint8_t** decoded_pixels_ptr, int* decoded_width_ptr, int* decoded_height_ptr, int* decoded_channels_ptr)
 	{
 		uint8_t* pixels = nullptr;
 		int width, height, channels;
@@ -244,12 +246,12 @@ extern "C"
 		else if(channels != 3 && channels != 4)
 		{
 			std::cout << "Input channels not supported" << std::endl;
-			freeInput(pixels, format);
+			freeDecodeMalloc(pixels, format);
 			return false;
 		}
 
 		// Write
-		*decoded_pixel_ptr = pixels;
+		*decoded_pixels_ptr = pixels;
 		*decoded_width_ptr = width;
 		*decoded_height_ptr = height;
 		*decoded_channels_ptr = channels;
@@ -261,7 +263,6 @@ extern "C"
 		std::cout << "Channels: " << channels << std::endl;
 		std::cout << "Size:     " << size << std::endl;
 
-		freeInput(pixels, format);
 		return true;
 	}
 }
