@@ -147,16 +147,16 @@ struct JPEG_buffer {
 void jpeg_write_callback(void* context, void* data, int size)
 {
     JPEG_buffer* buffer = (JPEG_buffer*)context;
-    buffer->data = (unsigned char*)realloc(buffer->data, buffer->size + size);
+    buffer->data = (uint8_t*)realloc(buffer->data, buffer->size + size);
     memcpy(buffer->data + buffer->size, data, size);
     buffer->size += size;
 }
 
-uint8_t* write_jpeg_to_memory(unsigned char* pixels, int w, int h, int channels, int quality, int* out_size) {
-    JPEG_buffer buffer = { NULL, 0 };
+uint8_t* write_jpeg_to_memory(uint8_t* pixels, int w, int h, int channels, int quality, int* out_size) {
+    JPEG_buffer buffer = { nullptr, 0 };
     stbi_write_jpg_to_func(jpeg_write_callback, &buffer, w, h, channels, pixels, quality);
     *out_size = buffer.size;
-    return buffer.data; // free when done
+    return buffer.data;
 }
 
 extern "C"
@@ -173,7 +173,7 @@ extern "C"
 				WebPFree(ptr);
 				break;
 			case heic:
-				delete ptr;
+				delete[] ptr;
 				break;
 			default:
 				break;
@@ -191,7 +191,7 @@ int main(void)
 extern "C"
 {
 	// writes into decoded_pixels_ptr, decoded_width_ptr, decoded_height_ptr, decoded_channels_ptr
-	// allocated "pixels", writes it into decoded_pixels_ptr
+	// allocates "pixels", writes it into decoded_pixels_ptr
 	bool Decode(uint8_t* bytes, int size, imgformat format, uint8_t** decoded_pixels_ptr, int* decoded_width_ptr, int* decoded_height_ptr, int* decoded_channels_ptr)
 	{
 		uint8_t* pixels = nullptr;
@@ -272,6 +272,31 @@ extern "C"
 
 extern "C"
 {
+	void freeEncodeMalloc(uint8_t* ptr, imgformat format)
+	{
+		switch(format)
+		{
+			case png:
+				free(ptr);
+				break;
+			case jpeg:
+				free(ptr);
+				break;
+			case webp:
+				WebPFree(ptr);
+				break;
+			case heic:
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+extern "C"
+{
+	// writes into blob_ptr, blob_size
+	// allocates resized_pixels, gets copied
 	bool Encode(uint8_t* pixels, uint8_t** blob_ptr, int* blob_size, int i_width, int i_height, int i_channels, imgformat t_format, int t_quality, int t_width, int t_height)
 	{
 		uint8_t* resized_pixels = (uint8_t*)malloc(t_width * t_height * i_channels);
@@ -282,6 +307,7 @@ extern "C"
 			return false;
 		}
 		
+		// Writes all blob data back
 		switch(t_format)
 		{
 			case png:
@@ -299,23 +325,13 @@ extern "C"
 					case 4:
 						*blob_size =  WebPEncodeRGBA(resized_pixels, t_width, t_height, t_width * i_channels, t_quality, blob_ptr);
 						break;
-					default:
-						free(resized_pixels);
-						return true;
-						break;
 				}
 			case heic:
 				free(resized_pixels);
-				return true;
-				break;
-			default:
-				free(resized_pixels);
-				return true;
+				return false;
 				break;
 		}
 
-		//free(*blob_ptr)
-		//WebPFree(*blob_ptr);
 		free(resized_pixels);
 		return true;
 	}

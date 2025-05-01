@@ -25,7 +25,7 @@ jobs:
     - name: Build C++
       run: |
         cd build
-        emcc ../src/*.cpp -I../includes -L../libs -lwebp -lsharpyuv -lheif -lde265 -s ALLOW_MEMORY_GROWTH=1 --bind -s EXPORTED_FUNCTIONS='[_main, _Decode, _Encode, _malloc, _free, _WebPFree, _freeDecodeMalloc]' -s EXPORTED_RUNTIME_METHODS='[HEAPU8, getValue]'
+        emcc ../src/*.cpp -I../includes -L../libs -lwebp -lsharpyuv -lheif -lde265 -s ALLOW_MEMORY_GROWTH=1 --bind -s EXPORTED_FUNCTIONS='[_main, _Decode, _Encode, _malloc, _free, _freeDecodeMalloc, _freeEncodeMalloc]' -s EXPORTED_RUNTIME_METHODS='[HEAPU8, getValue]'
         cd ..
 
     - name: Copy index.html
