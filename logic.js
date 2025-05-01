@@ -496,7 +496,7 @@ function ConvertCall(config, input)
 	}
 
 	// Free blob bytes
-	Module._freeEncodeMalloc(output_bytes, config.format);
+	//Module._freeEncodeMalloc(output_bytes, config.format);
 }
 
 _c_convert_encode.addEventListener('click', function()
