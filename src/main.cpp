@@ -332,6 +332,9 @@ extern "C"
 				break;
 		}
 
+		//temp
+		std::cout << "size: " << *blob_size << std::endl;
+
 		//free(resized_pixels);
 		return true;
 	}

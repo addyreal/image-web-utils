@@ -453,6 +453,16 @@ function ConvertCall(config, input)
 	const output_bytes_ptr = Module._malloc(4);
 	const output_size_ptr = Module._malloc(4);
 
+	//temp
+	console.log(input.pixels);
+	console.log(input.width);
+	console.log(input.height);
+	console.log(input.channels);
+	console.log(config.format);
+	console.log(config.quality);
+	console.log(config.width);
+	console.log(config.height);
+
 	// Call
 	encodeOK = Module._Encode(input.pixels, output_bytes_ptr, output_size_ptr, input.width, input.height, input.channels, config.format, config.quality, config.width, config.height);
 
