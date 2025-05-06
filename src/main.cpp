@@ -332,7 +332,7 @@ extern "C"
 		{
 			return false;
 		}
-		if(t_width >= i_width || t_width <= 0 || t_height >= i_height || t_height <= 0)
+		if(t_width > i_width || t_width <= 0 || t_height > i_height || t_height <= 0)
 		{
 			return false;
 		}
@@ -350,9 +350,17 @@ extern "C"
 		switch(t_format)
 		{
 			case png:
+				if(t_quality != 100)
+				{
+					std::cout << "PNG conversion is lossless, config quality ignored" << std::endl;
+				}
 				*blob_ptr =  stbi_write_png_to_mem(resized_pixels, t_width * i_channels, t_width, t_height, i_channels, blob_size);
 				break;
 			case jpeg:
+				if(i_channels == 4)
+				{
+					std::cout << "JPEG doesn't support transparency, alpha channel ignored" << std::endl;
+				}
 				*blob_ptr =  write_jpeg_to_memory(resized_pixels, t_width, t_height, i_channels, t_quality, blob_size);
 				break;
 			case webp:
