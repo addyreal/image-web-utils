@@ -551,13 +551,13 @@ config_quality.addEventListener("input", ()=>
 // Config width auto
 config_width_auto.addEventListener("click", ()=>
 {
-	config_width.value = Math.floor(parseFloat(config_height.value) * conversionConfig.ratio);
+	config_width.value = Math.floor(parseFloat(config_height.value) * decodedImage.ratio);
 });
 
 // Config height auto
 config_height_auto.addEventListener("click", ()=>
 {
-	config_height.value = Math.floor(parseFloat(config_width.value) / conversionConfig.ratio);
+	config_height.value = Math.floor(parseFloat(config_width.value) / decodedImage.ratio);
 });
 
 // -------------------------------------------------------------
