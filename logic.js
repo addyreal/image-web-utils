@@ -290,6 +290,9 @@ function formatStringToEnum(string)
 
 // -------------------------- GLOBALS --------------------------
 
+// Store input format
+var input_format = 0;
+
 // Defines the conversion
 var conversionConfig =
 {
@@ -297,6 +300,18 @@ var conversionConfig =
 	quality: 90,
 	width: 250,
 	height: 250,
+}
+
+// Resets config to default
+function resetConfig()
+{
+	config_format.value = formatEnumToString(input_format);
+	config_quality.value = input_format == 0 ? 100 : 90;
+	config_quality_visual.textContent = config_quality.value;
+	config_width.value = decodedImage.width;
+	config_height.value = decodedImage.height;
+	download_div.innerHTML = '';
+	download_div.classList.add('hidden');
 }
 
 // Writes front-end config to object
@@ -347,7 +362,7 @@ _input.addEventListener('change', function(e)
 		Module.HEAPU8.set(charArray, bytes);
 
 		// Input format
-		const input_format = bytesToImageFormat(charArray);
+		input_format = bytesToImageFormat(charArray);
 		const input_size = charArray.length;
 
 		// Input callback initialize
@@ -532,6 +547,12 @@ _c_config_view.addEventListener('click', function()
 {
 	config_popup.classList.toggle('hidden');
 	main.classList.toggle('blurred');
+});
+
+// Hide config
+_c_config_reset.addEventListener('click', function()
+{
+	resetConfig();
 });
 
 // Hide config
