@@ -458,16 +458,6 @@ function ConvertCall(config, input)
 	const output_bytes_ptr = Module._malloc(4);
 	const output_size_ptr = Module._malloc(4);
 
-	//temp
-	console.log(input.pixels);
-	console.log(input.width);
-	console.log(input.height);
-	console.log(input.channels);
-	console.log(config.format);
-	console.log(config.quality);
-	console.log(config.width);
-	console.log(config.height);
-
 	// Call
 	encodeOK = Module._Encode(input_pixels, output_bytes_ptr, output_size_ptr, input.width, input.height, input.channels, config.format, config.quality, config.width, config.height);
 
@@ -482,21 +472,21 @@ function ConvertCall(config, input)
 
 		return;
 	}
-	
+
 	// Free input
 	Module._free(input_pixels);
 
 	// Retrieve blob info
-	output_bytes = Module.getValue(output_bytes_ptr, '*');
-	output_size = Module.getValue(output_size_ptr, 'i32');
+	const output_bytes = Module.getValue(output_bytes_ptr, '*');
+	const output_size = Module.getValue(output_size_ptr, 'i32');
 
 	// Delete used pointers
-	//Module._free(output_bytes_ptr);
-	//Module._free(output_size_ptr);
+	Module._free(output_bytes_ptr);
+	Module._free(output_size_ptr);
 
 	// Make blob downloadable
-	//if(output_size != 0 && output_size != NaN)
-	//{
+	if(output_size != 0 && output_size != NaN)
+	{
 		// Copy bytes
 		const resultArray = new Uint8Array(Module.HEAPU8.slice(output_bytes, output_bytes + output_size));
 		resultArray.set(Module.HEAPU8.subarray(output_bytes, output_bytes + output_size));
@@ -513,10 +503,10 @@ function ConvertCall(config, input)
 			a.textContent = 'Download result';
 			download_div.appendChild(a);
 			download_div.classList.remove('hidden');
-	//}
+	}
 
 	// Free blob bytes
-	//Module._freeEncodeMalloc(output_bytes, config.format);
+	Module._freeEncodeMalloc(output_bytes, config.format);
 }
 
 _c_convert_encode.addEventListener('click', function()

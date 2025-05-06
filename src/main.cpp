@@ -333,10 +333,7 @@ extern "C"
 				break;
 		}
 
-		//temp
-		std::cout << "Output:   " << *blob_size << std::endl;
-
-		//free(resized_pixels);
+		free(resized_pixels);
 		return true;
 	}
 }
