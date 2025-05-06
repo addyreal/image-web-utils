@@ -1,4 +1,5 @@
 const main = document.getElementById('main');
+const _input = document.getElementById('input_label');
 const preview_container = document.getElementById('preview_container');
 const _c_image_view = document.getElementById('_c_image_view');
 const _c_image_hide = document.getElementById('_c_image_hide');
@@ -12,9 +13,178 @@ const config_format = document.getElementById('config_format');
 const config_quality = document.getElementById('config_quality');
 const config_quality_visual = document.getElementById('config_quality_visual');
 const config_width = document.getElementById('config_width');
+const config_width_auto = document.getElementById('config_width_auto');
 const config_height = document.getElementById('config_height');
+const config_height_auto = document.getElementById('config_height_auto');
 const download_div = document.getElementById('download_div');
 
+// --------------------------- PREVIEW -------------------------
+
+// --------------------------- WINDOW --------------------------
+
+// Preview window stuff
+var previewWindow =
+{
+	scale: 1,
+	lastTouchesDist: 0,
+	lastX: 0,
+	lastY: 0,
+	offsetX: 0,
+	offsetY: 0,
+	isDragging: false,
+	isTouchZooming: false,
+};
+
+// Resets preview window
+function resetPreviewWindow()
+{
+	previewWindow =
+	{
+		scale: 1,
+		lastTouchesDist: 0,
+		lastX: 0,
+		lastY: 0,
+		offsetX: 0,
+		offsetY: 0,
+		isDragging: false,
+		isTouchZooming: false,
+	};
+}
+
+// --------------------------- CANVAS --------------------------
+
+// Main
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
+context.imageSmoothingEnabled = false;
+
+// Virtual
+const vCanvas = document.createElement('canvas');
+const vContext = vCanvas.getContext('2d');
+vContext.imageSmoothingEnabled = false;
+
+// Draw
+function draw()
+{
+	context.setTransform(1, 0, 0, 1, 0, 0);
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.imageSmoothingEnabled = false;
+	context.setTransform(previewWindow.scale, 0, 0, previewWindow.scale, previewWindow.offsetX, previewWindow.offsetY);
+	context.drawImage(vCanvas, 0, 0);
+}
+
+// Zoom
+function zoom(e)
+{
+	const rect = canvas.getBoundingClientRect();
+
+	const zoomFactor = 1.1;
+	const mouseX = e.clientX - rect.left;
+	const mouseY = e.clientY - rect.top;
+	const scaleFactor = e.deltaY <= 0 ? zoomFactor : 1 / zoomFactor;
+
+	const worldX = (mouseX - previewWindow.offsetX) / previewWindow.scale;
+	const worldY = (mouseY - previewWindow.offsetY) / previewWindow.scale;
+
+	previewWindow.scale *= scaleFactor;
+
+	previewWindow.offsetX = mouseX - worldX * previewWindow.scale;
+	previewWindow.offsetY = mouseY - worldY * previewWindow.scale;
+
+	draw();
+}
+
+// Press
+function press(x, y)
+{
+	const rect = canvas.getBoundingClientRect();
+	previewWindow.isDragging = true;
+	previewWindow.isTouchZooming = false;
+	canvas.classList.add('grabbing');
+	previewWindow.lastX = x - rect.left;
+	previewWindow.lastY = y - rect.top;
+}
+
+// Move
+function move(x, y)
+{
+	if(!previewWindow.isDragging || previewWindow.isTouchZooming) return;
+	const rect = canvas.getBoundingClientRect();
+
+	const dx = x - rect.left - previewWindow.lastX;
+	const dy = y - rect.top - previewWindow.lastY;
+
+	previewWindow.offsetX += dx;
+	previewWindow.offsetY += dy;
+
+	previewWindow.lastX = x - rect.left;
+	previewWindow.lastY = y - rect.top;
+
+	draw();
+}
+
+// End
+function end()
+{
+	previewWindow.isDragging = false
+	canvas.classList.remove('grabbing');
+}
+
+// Mobile
+function getTouchesDist(touch1, touch2)
+{
+	const dx = touch1.clientX - touch2.clientX;
+	const dy = touch1.clientY - touch2.clientY;
+	return Math.hypot(dx, dy);
+}
+function getTouchesX(touch1, touch2)
+{
+	return (touch1.clientX + touch2.clientX)/2
+}
+function getTouchesY(touch1, touch2)
+{
+	return (touch1.clientY + touch2.clientY)/2
+}
+function mobileStartZoom(touch1, touch2)
+{
+	previewWindow.isDragging = false;
+	previewWindow.isTouchZooming = true;
+	previewWindow.lastTouchesDist = getTouchesDist(touch1, touch2);
+}
+function mobileZoom(touch1, touch2)
+{
+	const rect = canvas.getBoundingClientRect();
+
+	const zoomFactor = 1.05;
+	const touchX = getTouchesX(touch1, touch2) - rect.left;
+	const touchY = getTouchesY(touch1, touch2) - rect.top;
+	const scaleFactor = getTouchesDist(touch1, touch2) - previewWindow.lastTouchesDist <= 0 ? 1 / zoomFactor : zoomFactor;
+
+	const worldX = (touchX - previewWindow.offsetX) / previewWindow.scale;
+	const worldY = (touchY - previewWindow.offsetY) / previewWindow.scale;
+
+	previewWindow.scale *= scaleFactor;
+
+	previewWindow.offsetX = touchX - worldX * previewWindow.scale;
+	previewWindow.offsetY = touchY - worldY * previewWindow.scale;
+
+	previewWindow.lastTouchesDist = getTouchesDist(touch1, touch2);
+
+	draw();
+}
+function mobileEnd()
+{
+	previewWindow.isDragging = false;
+	previewWindow.isTouchZooming = false;
+}
+
+// -------------------------------------------------------------
+
+// --------------------------- UTILS ---------------------------
+
+// --------------------------- PIXELS --------------------------
+
+// fills in Alpha values into RGB
 function clampedArrayRGBtoRGBA(rgb, w, h)
 {
 	var rgba = new Uint8ClampedArray(w * h * 4);
@@ -28,6 +198,7 @@ function clampedArrayRGBtoRGBA(rgb, w, h)
 	return rgba;
 }
 
+// returns RGBA (uint8 clamped array)
 function clampedArrayRGBA(pix, w, h, c)
 {
 	if(c == 3)
@@ -39,7 +210,9 @@ function clampedArrayRGBA(pix, w, h, c)
 		return new Uint8ClampedArray(pix);
 	}
 }
+// --------------------------- BYTES ---------------------------
 
+// returns format enum based on magic bytes
 function bytesToImageFormat(bytes)
 {
 	// png (.,p,n,g)
@@ -72,6 +245,7 @@ function bytesToImageFormat(bytes)
 	}
 }
 
+// returns string format from enum
 function formatEnumToString(int)
 {
 	if(int == 0)
@@ -92,6 +266,7 @@ function formatEnumToString(int)
 	}
 }
 
+// returns enum from string format
 function formatStringToEnum(string)
 {
 	if(string == "png")
@@ -111,8 +286,11 @@ function formatStringToEnum(string)
 		return 3;
 	}
 }
+// -------------------------------------------------------------
 
-// Defines the output
+// -------------------------- GLOBALS --------------------------
+
+// Defines the conversion
 var conversionConfig =
 {
 	format: 0,
@@ -121,15 +299,7 @@ var conversionConfig =
 	height: 250,
 }
 
-// Copies decoded image data, so it can free
-var decodedImage = 
-{
-	pixels: 0,
-	width: 0,
-	height: 0,
-	channels: 0,
-}
-
+// Writes front-end config to object
 function applyConfig()
 {
 	conversionConfig.format = formatStringToEnum(config_format.value);
@@ -140,25 +310,39 @@ function applyConfig()
 	download_div.classList.add('hidden');
 }
 
-document.getElementById('input_label').addEventListener('change', function(e)
+// Copy of the result of decoding
+var decodedImage = 
 {
+	pixels: 0,
+	width: 0,
+	height: 0,
+	ratio: 0,
+	channels: 0,
+}
+
+// -------------------------------------------------------------
+
+// -------------------------- MAIN -----------------------------
+
+_input.addEventListener('change', function(e)
+{
+	// File
 	const file = e.target.files[0];
 	if (!file) return;
 
+	// Read file
 	const reader = new FileReader();
 	reader.onload = function()
 	{
-		// Disable configging
+		// Reset states
 		config_container.classList.add('hidden');
-
-		// Disable download
 		download_div.classList.add('hidden');
 
-		// Read
+		// Get bytes
 		const arrayBuffer = reader.result;
 		const charArray = new Uint8Array(arrayBuffer);
 
-		// Input
+		// Prepare bytes
 		const bytes = Module._malloc(charArray.length);
 		Module.HEAPU8.set(charArray, bytes);
 
@@ -230,184 +414,28 @@ document.getElementById('input_label').addEventListener('change', function(e)
 		decodedImage.pixels.set(Module.HEAPU8.subarray(input_pixels, input_pixels + input_width * input_height * input_channels));
 		decodedImage.width = input_width;
 		decodedImage.height = input_height;
+		decodedImage.ratio = input_width / input_height;
 		decodedImage.channels = input_channels;
 
 		// Free the pixels
 		Module._freeDecodeMalloc(input_pixels, input_format);
 
+		// Reset preview window
+		resetPreviewWindow();
+		canvas.classList.remove('grabbing');
+
 		// Make image
 		const rgbaPixels = clampedArrayRGBA(decodedImage.pixels, input_width, input_height, input_channels);
 		const imageData = new ImageData(rgbaPixels, input_width, input_height);
 
-		// Make main canvas
-		const canvas = document.createElement('canvas');
-		const context = canvas.getContext('2d');
+		// Set up canvas
 		canvas.width = input_width >= 600 ? 600 : input_width;
 		canvas.height = input_height >= 600 ? 600: input_height;
-		context.imageSmoothingEnabled = false;
-		canvas_container.innerHTML = '';
-		canvas_container.appendChild(canvas);
-
-		// Make virtual canvas
-		const vCanvas = document.createElement('canvas');
-		const vContext = vCanvas.getContext('2d');
 		vCanvas.width = input_width;
 		vCanvas.height = input_height;
-		vContext.imageSmoothingEnabled = false;
 		vContext.putImageData(imageData, 0, 0);
 
-		// Pan and zoom
-		let scale = 1;
-		let offsetX = 0;
-		let offsetY = 0;
-		let lastX = 0;
-		let lastY = 0;
-		let isDragging = false;
-		let isTouchZooming = false;
-		canvas.classList.remove('grabbing');
-			// Render
-		function draw()
-		{
-			context.setTransform(1, 0, 0, 1, 0, 0);
-			context.clearRect(0, 0, canvas.width, canvas.height);
-			context.imageSmoothingEnabled = false;
-			context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
-			context.drawImage(vCanvas, 0, 0);
-		}
-			// Zoom gesture
-		function zoom(e)
-		{
-			const rect = canvas.getBoundingClientRect();
-		
-			const zoomFactor = 1.1;
-			const mouseX = e.clientX - rect.left;
-			const mouseY = e.clientY - rect.top;
-			const scaleFactor = e.deltaY <= 0 ? zoomFactor : 1 / zoomFactor;
-		
-			const worldX = (mouseX - offsetX) / scale;
-			const worldY = (mouseY - offsetY) / scale;
-		
-			scale *= scaleFactor;
-		
-			offsetX = mouseX - worldX * scale;
-			offsetY = mouseY - worldY * scale;
-		
-			draw();
-		}
-			// Press
-		function press(x, y)
-		{
-			const rect = canvas.getBoundingClientRect();
-			isDragging = true;
-			isTouchZooming = false;
-			canvas.classList.add('grabbing');
-			lastX = x - rect.left;
-			lastY = y - rect.top;
-		}
-			// Move
-		function move(x, y)
-		{
-			if(!isDragging || isTouchZooming) return;
-			const rect = canvas.getBoundingClientRect();
-
-			const dx = x - rect.left - lastX;
-			const dy = y - rect.top - lastY;
-
-			offsetX += dx;
-			offsetY += dy;
-
-			lastX = x - rect.left;
-			lastY = y - rect.top;
-
-			draw();
-		}
-			// End
-		function end()
-		{
-			isDragging = false
-			canvas.classList.remove('grabbing');
-		}
-		// PC implementation
-		canvas.addEventListener('wheel', (e)=>{e.preventDefault();zoom(e)});
-		canvas.addEventListener('mousedown', (e)=>{press(e.clientX, e.clientY)});
-		canvas.addEventListener('mousemove', (e)=>{e.preventDefault();move(e.clientX, e.clientY)});
-		canvas.addEventListener('mouseup', ()=>{end()});
-		canvas.addEventListener('mouseleave', ()=>{end()});
-		// Mobile implementation
-		let lastTouchesDist = 0;
-		function getTouchesDist(touch1, touch2)
-		{
-			const dx = touch1.clientX - touch2.clientX;
-			const dy = touch1.clientY - touch2.clientY;
-			return Math.hypot(dx, dy);
-		}
-		function getTouchesX(touch1, touch2)
-		{
-			return (touch1.clientX + touch2.clientX)/2
-		}
-		function getTouchesY(touch1, touch2)
-		{
-			return (touch1.clientY + touch2.clientY)/2
-		}
-		function mobileStartZoom(touch1, touch2)
-		{
-			isDragging = false;
-			isTouchZooming = true;
-			lastTouchesDist = getTouchesDist(touch1, touch2);
-		}
-		function mobileZoom(touch1, touch2)
-		{
-			const rect = canvas.getBoundingClientRect();
-		
-			const zoomFactor = 1.05;
-			const touchX = getTouchesX(touch1, touch2) - rect.left;
-			const touchY = getTouchesY(touch1, touch2) - rect.top;
-			const scaleFactor = getTouchesDist(touch1, touch2) - lastTouchesDist <= 0 ? 1 / zoomFactor : zoomFactor;
-		
-			const worldX = (touchX - offsetX) / scale;
-			const worldY = (touchY - offsetY) / scale;
-		
-			scale *= scaleFactor;
-		
-			offsetX = touchX - worldX * scale;
-			offsetY = touchY - worldY * scale;
-
-			lastTouchesDist = getTouchesDist(touch1, touch2);
-		
-			draw();
-		}
-		function mobileEnd()
-		{
-			isDragging = false;
-			isTouchZooming = false;
-		}
-		canvas.addEventListener('touchstart', function(e)
-		{
-			e.preventDefault();
-			if(e.touches.length == 1)
-			{
-				press(e.touches[0].clientX, e.touches[0].clientY);
-			}
-			else if(e.touches.length == 2)
-			{
-				mobileStartZoom(e.touches[0], e.touches[1]);
-			}
-		}, {passive: false});
-		canvas.addEventListener('touchmove', function(e)
-		{
-			e.preventDefault();
-			if(e.touches.length == 1)
-			{
-				move(e.touches[0].clientX, e.touches[0].clientY);
-			}
-			else if(e.touches.length == 2)
-			{
-				mobileZoom(e.touches[0], e.touches[1]);
-			}
-		}, {passive: false});
-		canvas.addEventListener('touchend', ()=>{mobileEnd()}, {passive: false});
-		canvas.addEventListener('touchcancel', ()=>{mobileEnd()}, {passive: false});
-
+		// Draw
 		draw();
 
 		// Enable configging
@@ -417,24 +445,96 @@ document.getElementById('input_label').addEventListener('change', function(e)
 	reader.readAsArrayBuffer(file);
 });
 
+// --------------------- EVENT LISTENERS -----------------------
+
+// --------------------- CANVAS LISTENERS ----------------------
+
+// --------------------- PC IMPLEMENTATION ---------------------
+
+canvas.addEventListener('wheel', (e)=>
+{
+	e.preventDefault();
+	zoom(e);
+});
+canvas.addEventListener('mousedown', (e)=>
+{
+	press(e.clientX, e.clientY);
+});
+canvas.addEventListener('mousemove', (e)=>
+{
+	e.preventDefault();
+	move(e.clientX, e.clientY);
+});
+canvas.addEventListener('mouseup', ()=>
+{
+	end();
+});
+canvas.addEventListener('mouseleave', ()=>
+{
+	end();
+});
+
+// --------------------- MOBILE IMPLEMENTATION -----------------
+
+canvas.addEventListener('touchstart', function(e)
+{
+	e.preventDefault();
+	if(e.touches.length == 1)
+	{
+		press(e.touches[0].clientX, e.touches[0].clientY);
+	}
+	else if(e.touches.length == 2)
+	{
+		mobileStartZoom(e.touches[0], e.touches[1]);
+	}
+}, {passive: false});
+canvas.addEventListener('touchmove', function(e)
+{
+	e.preventDefault();
+	if(e.touches.length == 1)
+	{
+		move(e.touches[0].clientX, e.touches[0].clientY);
+	}
+	else if(e.touches.length == 2)
+	{
+		mobileZoom(e.touches[0], e.touches[1]);
+	}
+}, {passive: false});
+canvas.addEventListener('touchend', ()=>
+{
+	mobileEnd();
+}, {passive: false});
+canvas.addEventListener('touchcancel', ()=>
+{
+	mobileEnd();
+}, {passive: false});
+
+// -------------------------------------------------------------
+
+// --------------------- OTHER LISTENERS -----------------------
+
+// View preview
 _c_image_view.addEventListener('click', function()
 {
 	preview_container.classList.toggle('hidden');
 	main.classList.toggle('blurred');
 });
 
+// Hide preview
 _c_image_hide.addEventListener('click', function()
 {
 	preview_container.classList.toggle('hidden');
 	main.classList.toggle('blurred');
 });
 
+// View config
 _c_config_view.addEventListener('click', function()
 {
 	config_popup.classList.toggle('hidden');
 	main.classList.toggle('blurred');
 });
 
+// Hide config
 _c_config_hide.addEventListener('click', function()
 {
 	config_popup.classList.toggle('hidden');
@@ -442,10 +542,33 @@ _c_config_hide.addEventListener('click', function()
 	applyConfig();
 });
 
-config_quality.addEventListener("input", ()=>{config_quality_visual.textContent = config_quality.value;});
+// Config quality hook
+config_quality.addEventListener("input", ()=>
+{
+	config_quality_visual.textContent = config_quality.value;
+});
+
+// Config width auto
+config_width_auto.addEventListener("click", ()=>
+{
+	config_width.value = Math.floor(parseFloat(config_height.value) * conversionConfig.ratio);
+});
+
+// Config height auto
+config_height_auto.addEventListener("click", ()=>
+{
+	config_height.value = Math.floor(parseFloat(config_width.value) / conversionConfig.ratio);
+});
+
+// -------------------------------------------------------------
+
+// -------------------------- MAIN -----------------------------
 
 function ConvertCall(config, input)
 {
+	// Reset
+	download_div.classList.add('hidden');
+
 	// Abort default input
 	if(input.channels == 0) return;
 
@@ -495,7 +618,7 @@ function ConvertCall(config, input)
 		download_div.innerHTML = '';
 
 		// Make blob
-		const blob = new Blob([resultArray], { type: "image/" + formatEnumToString(config.format)});
+		const blob = new Blob([resultArray], {type: "image/" + formatEnumToString(config.format)});
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 			a.href = url;
@@ -509,7 +632,14 @@ function ConvertCall(config, input)
 	Module._freeEncodeMalloc(output_bytes, config.format);
 }
 
+// -------------------------------------------------------------
+
+// --------------------- EVENT LISTENERS -----------------------
+
+// Call conversion
 _c_convert_encode.addEventListener('click', function()
 {
 	ConvertCall(conversionConfig, decodedImage);
 });
+
+// -------------------------------------------------------------

@@ -26,7 +26,9 @@
 		</main>
 		<div id="preview_container" class="popup_window hidden">
 			<div class="preview_title"><button id="_c_image_hide">X</button></div>
-			<div id="canvas_container"></div>
+			<div id="canvas_container">
+				<canvas id="canvas"></canvas>
+			</div>
 		</div>
 		<div id="config_popup" class="popup_window hidden">
 			<div class="preview_title"><button id="_c_config_hide">X</button></div>
@@ -44,9 +46,15 @@
 					<span id="config_quality_visual"></span>
 				</div>
 				<span>Width:</span>
-				<input type="number" id="config_width"/>
+				<div class="autoconfig">
+					<input type="number" id="config_width"/>
+					<button id="config_width_auto">Auto</button>
+				</div>
 				<span>Height:</span>
-				<input type="number" id="config_height"/>
+				<div class="autoconfig">
+					<input type="number" id="config_height"/>
+					<button id="config_height_auto">Auto</button>
+				</div>
 			</div>
 		</div>
 	</body>

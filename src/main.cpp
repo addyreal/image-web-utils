@@ -161,6 +161,7 @@ uint8_t* write_jpeg_to_memory(uint8_t* pixels, int w, int h, int channels, int q
 
 extern "C"
 {
+	// Frees Decode's malloc
 	void freeDecodeMalloc(uint8_t* ptr, imgformat format)
 	{
 		switch(format)
@@ -194,15 +195,25 @@ extern "C"
 	// allocates "pixels", writes it into decoded_pixels_ptr
 	bool Decode(uint8_t* bytes, int size, imgformat format, uint8_t** decoded_pixels_ptr, int* decoded_width_ptr, int* decoded_height_ptr, int* decoded_channels_ptr)
 	{
+		// Initialize
 		uint8_t* pixels = nullptr;
 		int width, height, channels;
 
+		// Log
 		if(format == heic)
 		{
-			std::cout << "Received HEIC, HEIC (support) sucks, program may randomly abort" << std::endl;
+			std::cout << "Received HEIC, program might randomly abort" << std::endl;
 		}
 
 		// Validate
+		if(bytes == nullptr)
+		{
+			return false;
+		}
+		if(decoded_pixels_ptr == nullptr || decoded_width_ptr == nullptr || decoded_height_ptr == nullptr || decoded_channels_ptr == nullptr)
+		{
+			return false;
+		}
 		if(size == 0)
 		{
 			std::cout << "Input size is zero bytes" << std::endl;
@@ -223,14 +234,18 @@ extern "C"
 				break;
 			case webp:
 				channels = get_webp_num_channels(bytes, size);
-				if(channels == 3)
+				switch(channels)
 				{
-					pixels = WebPDecodeRGB(bytes, size, &width, &height);
-
-				}
-				else if(channels == 4)
-				{
-					pixels = WebPDecodeRGBA(bytes, size, &width, &height);
+					case 3:
+						pixels = WebPDecodeRGB(bytes, size, &width, &height);
+						break;
+					case 4:
+						pixels = WebPDecodeRGBA(bytes, size, &width, &height);
+						break;
+					default:
+						std::cout << "Input channels not supported" << std::endl;
+						return false;
+						break;
 				}
 				break;
 			case heic:
@@ -253,7 +268,7 @@ extern "C"
 			return false;
 		}
 
-		// Write
+		// Write result
 		*decoded_pixels_ptr = pixels;
 		*decoded_width_ptr = width;
 		*decoded_height_ptr = height;
@@ -272,6 +287,7 @@ extern "C"
 
 extern "C"
 {
+	// Frees Encode's malloc
 	void freeEncodeMalloc(uint8_t* ptr, imgformat format)
 	{
 		switch(format)
@@ -299,6 +315,29 @@ extern "C"
 	// allocates resized_pixels, gets copied
 	bool Encode(uint8_t* pixels, uint8_t** blob_ptr, int* blob_size, int i_width, int i_height, int i_channels, imgformat t_format, int t_quality, int t_width, int t_height)
 	{
+		// Validate
+		if(pixels == nullptr)
+		{
+			return false;
+		}
+		if(blob_ptr == nullptr || blob_size == nullptr)
+		{
+			return false;
+		}
+		if(t_format != png && t_format != jpeg && t_format != webp && t_format != heic)
+		{
+			return false;
+		}
+		if(t_quality <= 0 || t_quality > 100)
+		{
+			return false;
+		}
+		if(t_width >= i_width || t_width <= 0 || t_height >= i_height || t_height <= 0)
+		{
+			return false;
+		}
+
+		// Resize
 		uint8_t* resized_pixels = (uint8_t*)malloc(t_width * t_height * i_channels);
 		if(stbir_resize_uint8_srgb(pixels, i_width, i_height, 0, resized_pixels, t_width, t_height, 0, (stbir_pixel_layout)i_channels) == 0)
 		{
@@ -307,7 +346,7 @@ extern "C"
 			return false;
 		}
 		
-		// Writes all blob data back
+		// Write blob
 		switch(t_format)
 		{
 			case png:
@@ -328,11 +367,13 @@ extern "C"
 				}
 				break;
 			case heic:
+				std::cout << "Encoding to heic not supported" << std::endl;
 				free(resized_pixels);
 				return false;
 				break;
 		}
 
+		// Free resize and return
 		free(resized_pixels);
 		return true;
 	}
