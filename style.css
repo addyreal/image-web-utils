@@ -162,7 +162,23 @@ canvas
 	margin-top: 10px;
 }
 
-#config_options > select, #config_options > input
+.autoconfig
+{
+	display: flex;
+	gap: 25px;
+}
+
+.autoconfig > button
+{
+	background-color: black;
+	border: 1px solid gray;
+	padding: 5px;
+	font-family: 'Lucida Console', Monaco, monospace;
+	font-size: 1.2rem;
+	color: white;
+}
+
+#config_options > select, #config_options > input, #config_options .autoconfig > input
 {
 	background-color: black;
 	border: 1px solid gray;
