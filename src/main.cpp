@@ -326,6 +326,7 @@ extern "C"
 						*blob_size =  WebPEncodeRGBA(resized_pixels, t_width, t_height, t_width * i_channels, t_quality, blob_ptr);
 						break;
 				}
+				break;
 			case heic:
 				free(resized_pixels);
 				return false;
@@ -333,7 +334,7 @@ extern "C"
 		}
 
 		//temp
-		std::cout << "size: " << *blob_size << std::endl;
+		std::cout << "Output:   " << *blob_size << std::endl;
 
 		//free(resized_pixels);
 		return true;
