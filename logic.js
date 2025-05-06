@@ -449,6 +449,11 @@ function ConvertCall(config, input)
 	// Abort default input
 	if(input.channels == 0) return;
 
+	// Input pixels
+	const input_size = input.pixels.length;
+	const input_pixels = Module._malloc(input_size);
+	Module.HEAPU8.set(input.pixels, input_pixels);
+
 	// Retrieval ptrs
 	const output_bytes_ptr = Module._malloc(4);
 	const output_size_ptr = Module._malloc(4);
@@ -464,18 +469,22 @@ function ConvertCall(config, input)
 	console.log(config.height);
 
 	// Call
-	encodeOK = Module._Encode(input.pixels, output_bytes_ptr, output_size_ptr, input.width, input.height, input.channels, config.format, config.quality, config.width, config.height);
+	encodeOK = Module._Encode(input_pixels, output_bytes_ptr, output_size_ptr, input.width, input.height, input.channels, config.format, config.quality, config.width, config.height);
 
 	// Fail, not past encoding rn
 	if(encodeOK == false)
 	{
 		outputElement.value += "Encode successfully failed";
 
+		Module._free(input_pixels);
 		Module._free(output_bytes_ptr);
 		Module._free(output_size_ptr);
 
 		return;
 	}
+	
+	// Free input
+	Module._free(input_pixels);
 
 	// Retrieve blob info
 	output_bytes = Module.getValue(output_bytes_ptr, '*');

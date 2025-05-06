@@ -6116,6 +6116,7 @@ async function createWasm() {
     };
 
 
+
   FS.createPreloadedFile = FS_createPreloadedFile;
   FS.staticInit();;
 embind_init_charCodes();
@@ -6162,6 +6163,7 @@ if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
 }
 
 // Begin runtime exports
+  Module['setValue'] = setValue;
   Module['getValue'] = getValue;
   var missingLibrarySymbols = [
   'writeI53ToI64',
@@ -6389,7 +6391,6 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'addOnPostRun',
   'freeTableIndexes',
   'functionsInTableMap',
-  'setValue',
   'PATH',
   'PATH_FS',
   'UTF8Decoder',
