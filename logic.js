@@ -291,6 +291,7 @@ function formatStringToEnum(string)
 // -------------------------- GLOBALS --------------------------
 
 // Store input format
+var filename = "";
 var input_format = 0;
 
 // Defines the conversion
@@ -344,6 +345,9 @@ _input.addEventListener('change', function(e)
 	// File
 	const file = e.target.files[0];
 	if (!file) return;
+
+	// Store filename
+	filename = file.name.replace(/\.(png|jpeg|jpg|webp|heic)$/i, '');
 
 	// Read file
 	const reader = new FileReader();
@@ -643,7 +647,7 @@ function ConvertCall(config, input)
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 			a.href = url;
-			a.download = 'converted_image.' + formatEnumToString(config.format);
+			a.download = filename + '-' + (input.width).toString() + 'x' + (input.height).toString() + '.' + formatEnumToString(config.format);
 			a.textContent = 'Download result';
 			download_div.appendChild(a);
 			download_div.classList.remove('hidden');
