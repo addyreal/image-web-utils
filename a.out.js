@@ -6762,7 +6762,7 @@ var _malloc = Module['_malloc'] = createExportWrapper('malloc', 1);
 var _freeDecodeMalloc = Module['_freeDecodeMalloc'] = createExportWrapper('freeDecodeMalloc', 2);
 var _Decode = Module['_Decode'] = createExportWrapper('Decode', 7);
 var _freeEncodeMalloc = Module['_freeEncodeMalloc'] = createExportWrapper('freeEncodeMalloc', 2);
-var _Encode = Module['_Encode'] = createExportWrapper('Encode', 10);
+var _Encode = Module['_Encode'] = createExportWrapper('Encode', 17);
 var _main = Module['_main'] = createExportWrapper('main', 2);
 var _strerror = createExportWrapper('strerror', 1);
 var _fflush = createExportWrapper('fflush', 1);
