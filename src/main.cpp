@@ -309,11 +309,26 @@ extern "C"
 	}
 }
 
+uint8_t* crop(const uint8_t* i_pixels, int i_width, int i_height, int i_channels, int x, int y, int w, int h)
+{
+	uint8_t* t_pixels = new uint8_t[w * h * i_channels];
+
+	for(int row = 0; row < h; row++)
+	{
+		const uint8_t* i_row = i_pixels + ((y + row) * i_width + x) * i_channels;
+		uint8_t* t_row = t_pixels + (row * w) * i_channels;
+
+		std::memcpy(t_row, i_row, w * i_channels);
+	}
+
+	return t_pixels;
+}
+
 extern "C"
 {
 	// writes into blob_ptr, blob_size
 	// allocates resized_pixels, gets copied
-	bool Encode(uint8_t* pixels, uint8_t** blob_ptr, int* blob_size, int i_width, int i_height, int i_channels, imgformat t_format, int t_quality, int t_width, int t_height)
+	bool Encode(uint8_t* pixels, uint8_t** blob_ptr, int* blob_size, int* width_ptr, int* height_ptr, int i_width, int i_height, int i_channels, imgformat t_format, int t_quality, int t_width, int t_height, int t_rotation, int crop_x, int crop_y, int crop_w, int crop_h)
 	{
 		// Validate
 		if(pixels == nullptr)
@@ -345,6 +360,73 @@ extern "C"
 			free(resized_pixels);
 			return false;
 		}
+		std::cout << "Done: Resized image..." << std::endl;
+
+		// Width, height
+		int width = t_width;
+		int height = t_height;
+
+		// Crop validation
+		bool should_crop = false;
+		int t_crop_x = crop_x;
+		int t_crop_y = crop_y;
+		int t_crop_w = crop_w;
+		int t_crop_h = crop_h;
+		if(crop_x < 0)
+		{
+			t_crop_x = 0;
+		}
+		if(crop_y < 0)
+		{
+			t_crop_y = 0;
+		}
+		if(t_crop_x + crop_w > i_width)
+		{
+			t_crop_w = i_width - t_crop_x;
+		}
+		if(t_crop_y + crop_h > i_height)
+		{
+			t_crop_h = i_height - t_crop_y;
+		}
+		if(t_crop_w != i_width && t_crop_h != i_height)
+		{
+			should_crop = true;
+		}
+
+		// Crop
+		uint8_t* cropped_pixels = resized_pixels;
+		if(should_crop == true)
+		{
+			const float scaleX = (float)t_width / i_width;
+			const float scaleY = (float)t_height / i_height;
+			t_crop_x = (int)(scaleX * t_crop_x);
+			t_crop_y = (int)(scaleY * t_crop_y);
+			t_crop_w = (int)(scaleX * t_crop_w);
+			t_crop_h = (int)(scaleY * t_crop_h);
+			if(t_crop_w == 0 || t_crop_h == 0)
+			{
+				std::cout << "Error: Crop after resize corresponds to zero pixels." << std::endl;
+				free(resized_pixels);
+				return false;
+			}
+			cropped_pixels = crop(resized_pixels, width, height, i_channels, t_crop_x, t_crop_y, t_crop_w, t_crop_h);
+			std::cout << "Done: Cropped image..." << std::endl;
+			width = t_crop_w;
+			height = t_crop_h;
+		}
+
+		// Write actual new dimensions
+		*width_ptr = width;
+		*height_ptr = height;
+
+		// Delete croppedpixels
+		// Free resizedpixels
+
+		// Rotate
+		if(t_rotation != 0)
+		{
+			std::cout << "cba rotating" << std::endl;
+		}
 		
 		// Write blob
 		switch(t_format)
@@ -354,34 +436,39 @@ extern "C"
 				{
 					std::cout << "PNG conversion is lossless, config quality ignored" << std::endl;
 				}
-				*blob_ptr =  stbi_write_png_to_mem(resized_pixels, t_width * i_channels, t_width, t_height, i_channels, blob_size);
+				*blob_ptr =  stbi_write_png_to_mem(cropped_pixels, width * i_channels, width, height, i_channels, blob_size);
 				break;
 			case jpeg:
 				if(i_channels == 4)
 				{
 					std::cout << "JPEG doesn't support transparency, alpha channel ignored" << std::endl;
 				}
-				*blob_ptr =  write_jpeg_to_memory(resized_pixels, t_width, t_height, i_channels, t_quality, blob_size);
+				*blob_ptr =  write_jpeg_to_memory(cropped_pixels, width, height, i_channels, t_quality, blob_size);
 				break;
 			case webp:
 				switch(i_channels)
 				{
 					case 3:
-						*blob_size =  WebPEncodeRGB(resized_pixels, t_width, t_height, t_width * i_channels, t_quality, blob_ptr);
+						*blob_size =  WebPEncodeRGB(cropped_pixels, width, height, width * i_channels, t_quality, blob_ptr);
 						break;
 					case 4:
-						*blob_size =  WebPEncodeRGBA(resized_pixels, t_width, t_height, t_width * i_channels, t_quality, blob_ptr);
+						*blob_size =  WebPEncodeRGBA(cropped_pixels, width, height, width * i_channels, t_quality, blob_ptr);
 						break;
 				}
 				break;
 			case heic:
 				std::cout << "Encoding to heic not supported" << std::endl;
+				if(should_crop) delete cropped_pixels;
 				free(resized_pixels);
 				return false;
 				break;
 		}
 
+		// Done
+		std::cout << "Info: Prompting download..." << std::endl;
+
 		// Free resize and return
+		if(should_crop) delete cropped_pixels;
 		free(resized_pixels);
 		return true;
 	}

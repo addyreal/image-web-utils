@@ -52,6 +52,11 @@ jobs:
       run: |
         terser logic.js --compress --mangle -o build/logic.js
 
+    - name: Copy over images
+      run: |
+        mkdir build/images
+        cp images/*.png build/images
+
     - name: Create .nojekyll
       run: |
         touch build/.nojekyll

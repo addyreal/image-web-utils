@@ -1,31 +1,27 @@
-// Output functions
-function getLineCount(textarea)
-{
-    return textarea.value.split('\n').length - 1;
-}
+// Console
+const _console = document.getElementById('console');
 
-function resizeOutput(textarea)
+// Methods
+function printConsole(text)
 {
-	textarea.style.height = "calc(1.2rem * " + getLineCount(textarea) + " + 70px)";
+	_console.value += text;
+	_console.scrollTop = _console.scrollHeight;
 }
-
-function clearOutput(textarea)
+function resetConsole()
 {
-	textarea.value = "";
+	_console.value = "";
 }
 
 // Module init
-const outputElement = document.getElementById('output');
-clearOutput(outputElement);
+resetConsole();
 var Module =
 {
 	print(...args)
 	{
-		if (outputElement)
+		if (_console)
 		{
 			var text = args.join(' ');
-			outputElement.value += text + "\n";
-			resizeOutput(outputElement);
+			_console.value += text + "\n";
 		}
 	},
 }
