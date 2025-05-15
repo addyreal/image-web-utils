@@ -22,6 +22,18 @@ const config_height_auto = document.getElementById('config_height_auto');
 const action_button = document.getElementById('action_button');
 const bottom_info = document.getElementById('bottom_info');
 
+// --------------------------- WASM SAFETY ---------------------
+
+// Int
+function safeInt(i)
+{
+	const INT_MIN = -2147483648;
+	const INT_MAX = 2147483647;
+	return (i >= INT_MIN && i <= INT_MAX) ? i : 0;
+}
+
+// -------------------------------------------------------------
+
 // --------------------------- GLOBALS -------------------------
 
 // Structs
@@ -811,7 +823,7 @@ _input.addEventListener('change', function(e)
 		const input_channels_ptr = Module._malloc(4);
 
 		// Call
-		const decodeOK = Module._Decode(bytes, input_size, input_format, input_pixels_ptr, input_width_ptr, input_height_ptr, input_channels_ptr);
+		const decodeOK = Module._Decode(bytes, safeInt(input_size), safeInt(input_format), input_pixels_ptr, input_width_ptr, input_height_ptr, input_channels_ptr);
 
 		// Check for success
 		if(decodeOK == false)
@@ -854,12 +866,12 @@ _input.addEventListener('change', function(e)
 		*/
 
 		// Initialize config
-		config_format.value = formatEnumToString(input_format);
+		config_format.value = input_format == 3 ? formatEnumToString(0) : formatEnumToString(input_format);
 		config_quality.value = input_format == 0 ? 100 : 90;
 		config_quality_visual.textContent = config_quality.value;
 		config_width.value = input_width;
 		config_height.value = input_height;
-		conversionConfig.format = input_format;
+		conversionConfig.format = input_format == 3 ? 0 : input_format;
 		conversionConfig.quality = input_format == 0 ? 100 : 90;
 		conversionConfig.width = input_width;
 		conversionConfig.height = input_height;
@@ -925,7 +937,7 @@ function ConvertCall()
 	const crop_y = Math.round(cropRect.y);
 	const crop_w = Math.round(cropRect.w);
 	const crop_h = Math.round(cropRect.h);
-	encodeOK = Module._Encode(input_pixels, output_bytes_ptr, output_size_ptr, output_width_ptr, output_height_ptr, decodedImage.width, decodedImage.height, decodedImage.channels, conversionConfig.format, conversionConfig.quality, conversionConfig.width, conversionConfig.height, rotate, crop_x, crop_y, crop_w, crop_h);
+	encodeOK = Module._Encode(input_pixels, output_bytes_ptr, output_size_ptr, output_width_ptr, output_height_ptr, safeInt(decodedImage.width), safeInt(decodedImage.height), safeInt(decodedImage.channels), safeInt(conversionConfig.format), safeInt(conversionConfig.quality), safeInt(conversionConfig.width), safeInt(conversionConfig.height), safeInt(rotate), safeInt(crop_x), safeInt(crop_y), safeInt(crop_w), safeInt(crop_h));
 
 	// Fail, not past encoding rn
 	if(encodeOK == false)

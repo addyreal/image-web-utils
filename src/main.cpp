@@ -339,7 +339,7 @@ extern "C"
 		{
 			return false;
 		}
-		if(t_format != png && t_format != jpeg && t_format != webp && t_format != heic)
+		if(t_format != png && t_format != jpeg && t_format != webp)
 		{
 			return false;
 		}
@@ -457,10 +457,8 @@ extern "C"
 				}
 				break;
 			case heic:
-				std::cout << "Encoding to heic not supported" << std::endl;
-				if(should_crop) delete cropped_pixels;
-				free(resized_pixels);
-				return false;
+				break;
+			default:
 				break;
 		}
 
