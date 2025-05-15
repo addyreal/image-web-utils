@@ -191,8 +191,6 @@ int main(void)
 
 extern "C"
 {
-	// writes into decoded_pixels_ptr, decoded_width_ptr, decoded_height_ptr, decoded_channels_ptr
-	// allocates "pixels", writes it into decoded_pixels_ptr
 	bool Decode(uint8_t* bytes, int size, imgformat format, uint8_t** decoded_pixels_ptr, int* decoded_width_ptr, int* decoded_height_ptr, int* decoded_channels_ptr)
 	{
 		// Initialize
@@ -324,10 +322,55 @@ uint8_t* crop(const uint8_t* i_pixels, int i_width, int i_height, int i_channels
 	return t_pixels;
 }
 
+uint8_t* rotate(const uint8_t* i_pixels, int i_width, int i_height, int i_channels, int r)
+{
+	uint8_t* t_pixels = new uint8_t[i_width * i_height * i_channels];
+
+	int t_width = i_width;
+	int t_height = i_height;
+	if(r == 1 % 2)
+	{
+		t_width = i_height;
+		t_height = i_width;
+	}
+
+	for(int y = 0; y < i_height; y++)
+	{
+		for(int x = 0; x < i_width; x++)
+		{
+			// Read index
+			int i = (y * i_width + x) * i_channels;
+			int dx, dy;
+
+			switch(r)
+			{
+				case 1:
+					dx = i_height - 1 - y;
+					dy = x;
+					break;
+				case 2:
+					dx = i_width - 1 - x;
+					dy = i_height - 1 - y;
+					break;
+				case 3:
+					dx = y;
+					dy = i_width - 1 - x;
+					break;
+			}
+
+			// Write index
+			int t_i = (dy * t_width + dx) * i_channels;
+
+			// Copy
+			memcpy(t_pixels + t_i, i_pixels + i, i_channels);
+		}
+	}
+
+	return t_pixels;
+}
+
 extern "C"
 {
-	// writes into blob_ptr, blob_size
-	// allocates resized_pixels, gets copied
 	bool Encode(uint8_t* pixels, uint8_t** blob_ptr, int* blob_size, int* width_ptr, int* height_ptr, int i_width, int i_height, int i_channels, imgformat t_format, int t_quality, int t_width, int t_height, int t_rotation, int crop_x, int crop_y, int crop_w, int crop_h)
 	{
 		// Validate
@@ -415,18 +458,24 @@ extern "C"
 			height = t_crop_h;
 		}
 
-		// Write actual new dimensions
+		// Rotate
+		bool should_rotate = t_rotation != 0;
+		uint8_t* rotated_pixels = cropped_pixels;
+		if(should_rotate)
+		{
+			rotated_pixels = rotate(cropped_pixels, width, height, i_channels, t_rotation);
+			std::cout << "Done: Rotated image..." << std::endl;
+			if(t_rotation == 1 % 2)
+			{
+				int temp = width;
+				width = height;
+				height = temp;
+			}
+		}
+
+		// Write new dimensions
 		*width_ptr = width;
 		*height_ptr = height;
-
-		// Delete croppedpixels
-		// Free resizedpixels
-
-		// Rotate
-		if(t_rotation != 0)
-		{
-			std::cout << "cba rotating" << std::endl;
-		}
 		
 		// Write blob
 		switch(t_format)
@@ -436,23 +485,23 @@ extern "C"
 				{
 					std::cout << "PNG conversion is lossless, config quality ignored" << std::endl;
 				}
-				*blob_ptr =  stbi_write_png_to_mem(cropped_pixels, width * i_channels, width, height, i_channels, blob_size);
+				*blob_ptr =  stbi_write_png_to_mem(rotated_pixels, width * i_channels, width, height, i_channels, blob_size);
 				break;
 			case jpeg:
 				if(i_channels == 4)
 				{
 					std::cout << "JPEG doesn't support transparency, alpha channel ignored" << std::endl;
 				}
-				*blob_ptr =  write_jpeg_to_memory(cropped_pixels, width, height, i_channels, t_quality, blob_size);
+				*blob_ptr =  write_jpeg_to_memory(rotated_pixels, width, height, i_channels, t_quality, blob_size);
 				break;
 			case webp:
 				switch(i_channels)
 				{
 					case 3:
-						*blob_size =  WebPEncodeRGB(cropped_pixels, width, height, width * i_channels, t_quality, blob_ptr);
+						*blob_size =  WebPEncodeRGB(rotated_pixels, width, height, width * i_channels, t_quality, blob_ptr);
 						break;
 					case 4:
-						*blob_size =  WebPEncodeRGBA(cropped_pixels, width, height, width * i_channels, t_quality, blob_ptr);
+						*blob_size =  WebPEncodeRGBA(rotated_pixels, width, height, width * i_channels, t_quality, blob_ptr);
 						break;
 				}
 				break;
@@ -467,6 +516,7 @@ extern "C"
 
 		// Free resize and return
 		if(should_crop) delete cropped_pixels;
+		if(should_rotate) delete rotated_pixels;
 		free(resized_pixels);
 		return true;
 	}
