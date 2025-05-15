@@ -353,6 +353,7 @@ uint8_t* rotate(const uint8_t* i_pixels, int i_width, int i_height, int i_channe
 					dy = i_height - 1 - y;
 					break;
 				case 3:
+					// TODO: fix this case
 					dx = y;
 					dy = i_width - 1 - x;
 					break;
