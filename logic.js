@@ -83,7 +83,7 @@ var cropRect =
 // Resets
 function resetConfig()
 {
-	config_format.value = formatEnumToString(input_format);
+	config_format.value = input_format == 3 ? formatEnumToString(0) : formatEnumToString(input_format);
 	config_quality.value = input_format == 0 ? 100 : 90;
 	config_quality_visual.textContent = config_quality.value;
 	config_width.value = decodedImage.width;
