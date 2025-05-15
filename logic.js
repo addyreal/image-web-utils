@@ -1,4 +1,3 @@
-//TODO: check bounds for int, etc. before passing into wasm
 const main = document.getElementById('main');
 const _input = document.getElementById('input_label');
 const preview_container = document.getElementById('preview_container');
