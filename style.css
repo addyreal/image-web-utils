@@ -169,8 +169,12 @@ canvas
 */
 #preview_canvas canvas
 {
-	background: linear-gradient(135deg, rgb(255, 0, 0) 0%, rgba(0, 255, 0, 0.5) 50%, rgb(0, 0, 255) 100%);
+	background: black;
 	margin: 0 auto;
+}
+#preview_canvas canvas.alphabg
+{
+	background: linear-gradient(135deg, rgb(255, 0, 0) 0%, rgba(0, 255, 0, 0.5) 50%, rgb(0, 0, 255) 100%);
 }
 	/*
 		POPUP

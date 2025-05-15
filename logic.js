@@ -2,6 +2,7 @@ const main = document.getElementById('main');
 const _input = document.getElementById('input_label');
 const preview_container = document.getElementById('preview_container');
 const preview_canvas = document.getElementById('preview_canvas');
+const _canvas = document.getElementById('canvas');
 const config_container = document.getElementById('config_container');
 const config_popup = document.getElementById('config_popup');
 const _c_preview_reset = document.getElementById('_c_preview_reset');
@@ -852,7 +853,17 @@ _input.addEventListener('change', function(e)
 		Module._free(bytes);
 
 		// Reset crop
-		resetCurrentCrop(input_width, input_height)
+		resetCurrentCrop(input_width, input_height);
+
+		// Choose fitting preview background
+		if(input_channels != 4)
+		{
+			_canvas.classList.remove('alphabg');
+		}
+		else
+		{
+			_canvas.classList.add('alphabg');
+		}
 
 		/*
 			Decoding successful:
