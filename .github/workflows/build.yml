@@ -48,9 +48,9 @@ jobs:
       run: |
         cp module-init.js build/module-init.js
 
-    - name: Copy compressed logic.js
+    - name: Copy compressed js
       run: |
-        terser logic.js --compress --mangle -o build/logic.js
+        terser image-web-utils.js --compress --mangle -o build/image-web-utils.js
 
     - name: Copy over images
       run: |

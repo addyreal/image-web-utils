@@ -1,9 +1,3 @@
-body *
-{
-	font-family: 'Lucida Console', Monaco, monospace;
-	font-size: 1.2rem;
-	color: white;
-}
 html
 {
 	width: 100%;
@@ -12,6 +6,12 @@ html
 html.mobile
 {
 	font-size: 20px;
+}
+body *
+{
+	font-family: 'Lucida Console', Monaco, monospace;
+	font-size: 1.2rem;
+	color: white;
 }
 body
 {
@@ -90,6 +90,10 @@ canvas
 .flex
 {
 	display: flex;
+}
+.fc
+{
+	flex-direction: column;
 }
 .sb
 {
