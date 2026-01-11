@@ -54,7 +54,7 @@ jobs:
 
     - name: Create .nojekyll
       run: |
-        touch .nojekyll
+        touch ./build/.nojekyll
 
     - name: Deploy to build branch
       uses: peaceiris/actions-gh-pages@v4
