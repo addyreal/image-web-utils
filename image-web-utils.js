@@ -1,1 +1,920 @@
-const main=document.getElementById("main"),_input=document.getElementById("input_label"),preview_container=document.getElementById("preview_container"),preview_canvas=document.getElementById("preview_canvas"),config_container=document.getElementById("config_container"),config_popup=document.getElementById("config_popup"),_c_preview_reset=document.getElementById("_c_preview_reset"),_c_preview_crop=document.getElementById("_c_preview_crop"),_c_preview_rotate=document.getElementById("_c_preview_rotate"),_c_preview_view=document.getElementById("_c_preview_view"),_c_preview_hide=document.getElementById("_c_preview_hide"),_c_config_view=document.getElementById("_c_config_view"),_c_config_hide=document.getElementById("_c_config_hide"),config_format=document.getElementById("config_format"),config_quality=document.getElementById("config_quality"),config_quality_visual=document.getElementById("config_quality_visual"),config_width=document.getElementById("config_width"),config_width_auto=document.getElementById("config_width_auto"),config_height=document.getElementById("config_height"),config_height_auto=document.getElementById("config_height_auto"),action_button=document.getElementById("action_button"),bottom_info=document.getElementById("bottom_info");function safeInt(e){return e>=-2147483648&&e<=2147483647?e:0}var filename="",input_format=null,isCropping=!1,rotate=0,conversionConfig={format:null,quality:null,width:null,height:null},decodedImage={pixels:null,width:null,height:null,ratio:null,channels:null},previewWindow={scale:1,lastTouchesDist:0,lastX:0,lastY:0,offsetX:0,offsetY:0,isDragging:!1,isTouchZooming:!1},cropRect={x:0,y:0,w:0,h:0,lastX:0,lastY:0,offsetX:0,offsetY:0,vertex:0,dragging:!1};function resetConfig(){config_format.value=formatEnumToString(3==input_format?0:input_format),config_quality.value=0==input_format?100:90,config_quality_visual.textContent=config_quality.value,config_width.value=decodedImage.width,config_height.value=decodedImage.height}function resetPreviewWindow(){previewWindow={scale:1,lastTouchesDist:0,lastX:0,lastY:0,offsetX:0,offsetY:0,isDragging:!1,isTouchZooming:!1}}function resetCurrentCrop(e,t){cropRect={x:0,y:0,w:e-1,h:t-1,lastX:0,lastY:0,offsetX:0,offsetY:0,vertex:0,dragging:!1}}function applyConfig(){conversionConfig.format=formatStringToEnum(config_format.value),conversionConfig.quality=parseInt(config_quality.value,10),conversionConfig.width=parseInt(config_width.value,10),conversionConfig.height=parseInt(config_height.value,10)}const canvas=document.getElementById("canvas"),context=canvas.getContext("2d");context.imageSmoothingEnabled=!1;const vCanvas=document.createElement("canvas"),vContext=vCanvas.getContext("2d");vContext.imageSmoothingEnabled=!1;const CONST_CROPTHICKNESS=1,CONST_CROPSQUAREAREA=16,CONST_ZOOMFACTOR=1.1,CONST_MOBILEZOOMFACTOR=1.05;function draw(){context.setTransform(1,0,0,1,0,0),context.clearRect(0,0,canvas.width,canvas.height),context.imageSmoothingEnabled=!1,context.setTransform(previewWindow.scale,0,0,previewWindow.scale,previewWindow.offsetX,previewWindow.offsetY),0!=rotate&&0==isCropping&&(context.translate(vCanvas.width/2,vCanvas.height/2),context.rotate(rotate*Math.PI/2),context.translate(-1*vCanvas.width/2,-1*vCanvas.height/2)),context.drawImage(vCanvas,0,0);const e=Math.round(cropRect.x),t=Math.round(cropRect.y),o=Math.round(cropRect.w),i=Math.round(cropRect.h);1==isCropping&&(context.fillStyle="red",context.fillRect(e+1-16,t+1-16,16,16),context.fillRect(e+1-16,t+i,16,16),context.fillRect(e+o,t+1-16,16,16),context.fillRect(e+o,t+i,16,16)),context.save(),context.fillStyle="rgba(0, 0, 0, 0.25)",context.fillRect(e,t,o,i),context.restore(),context.strokeStyle="rgba(255, 0, 0 , 0.6)",context.lineWidth=1,context.strokeRect(e+.5,t+.5,o,i)}function press(e,t){const o=canvas.getBoundingClientRect();previewWindow.isDragging=!0,previewWindow.isTouchZooming=!1,previewWindow.lastX=e-o.left,previewWindow.lastY=t-o.top}function move(e,t){if(!previewWindow.isDragging||previewWindow.isTouchZooming)return;const o=canvas.getBoundingClientRect(),i=e-o.left-previewWindow.lastX,n=t-o.top-previewWindow.lastY;previewWindow.offsetX+=i,previewWindow.offsetY+=n,previewWindow.lastX=e-o.left,previewWindow.lastY=t-o.top,draw()}function zoom(e){const t=canvas.getBoundingClientRect(),o=e.clientX-t.left,i=e.clientY-t.top,n=e.deltaY<=0?1.1:1/1.1,c=(o-previewWindow.offsetX)/previewWindow.scale,r=(i-previewWindow.offsetY)/previewWindow.scale;previewWindow.scale*=n,previewWindow.offsetX=o-c*previewWindow.scale,previewWindow.offsetY=i-r*previewWindow.scale,draw()}function end(){previewWindow.isDragging=!1,cropRect.dragging=!1,canvas.classList.remove("grabbing")}function getTouchesDist(e,t){const o=e.clientX-t.clientX,i=e.clientY-t.clientY;return Math.hypot(o,i)}function getTouchesX(e,t){return(e.clientX+t.clientX)/2}function getTouchesY(e,t){return(e.clientY+t.clientY)/2}function mobileStartZoom(e,t){cropRect.dragging=!1,previewWindow.isDragging=!1,previewWindow.isTouchZooming=!0,previewWindow.lastTouchesDist=getTouchesDist(e,t)}function mobileZoom(e,t){const o=canvas.getBoundingClientRect(),i=getTouchesX(e,t)-o.left,n=getTouchesY(e,t)-o.top,c=getTouchesDist(e,t)-previewWindow.lastTouchesDist<=0?1/1.05:1.05,r=(i-previewWindow.offsetX)/previewWindow.scale,a=(n-previewWindow.offsetY)/previewWindow.scale;previewWindow.scale*=c,previewWindow.offsetX=i-r*previewWindow.scale,previewWindow.offsetY=n-a*previewWindow.scale,previewWindow.lastTouchesDist=getTouchesDist(e,t),draw()}function mobileEnd(){cropRect.dragging=!1,previewWindow.isDragging=!1,previewWindow.isTouchZooming=!1}function clampedArrayRGBtoRGBA(e,t,o){var i=new Uint8ClampedArray(t*o*4);for(let t=0,o=0;t<e.length;t+=3,o+=4)i[o]=e[t],i[o+1]=e[t+1],i[o+2]=e[t+2],i[o+3]=255;return i}function clampedArrayRGBA(e,t,o,i){return 3==i?clampedArrayRGBtoRGBA(e,t,o):4==i?new Uint8ClampedArray(e):void 0}function bytesToImageFormat(e){return 137===e[0]&&80===e[1]&&78===e[2]&&71===e[3]?0:255===e[0]&&216===e[1]?1:82===e[0]&&73===e[1]&&70===e[2]&&70===e[3]&&87===e[8]&&69===e[9]&&66===e[10]&&80===e[11]?2:102===e[4]&&116===e[5]&&121===e[6]&&112===e[7]&&104===e[8]&&101===e[9]&&105===e[10]&&99===e[11]||102===e[4]&&116===e[5]&&121===e[6]&&112===e[7]&&104===e[20]&&101===e[21]&&105===e[22]&&99===e[23]?3:-1}function formatEnumToString(e){return 0==e?"png":1==e?"jpeg":2==e?"webp":3==e?"heic":void 0}function formatStringToEnum(e){return"png"==e?0:"jpeg"==e?1:"webp"==e?2:"heic"==e?3:void 0}function hideWhenCropping(){_c_preview_hide.classList.toggle("notallowed"),_c_preview_rotate.classList.toggle("notallowed"),_c_preview_reset.classList.toggle("notallowed")}function ConvertCall(){if(0==decodedImage.channels)return;if(0==Math.round(cropRect.w)||0==Math.round(cropRect.h))return void printConsole("Aborting cropping the entire image.\n");const e=decodedImage.pixels.length,t=Module._malloc(e);Module.HEAPU8.set(decodedImage.pixels,t);const o=Module._malloc(4),i=Module._malloc(4),n=Module._malloc(4),c=Module._malloc(4),r=Math.round(cropRect.x),a=Math.round(cropRect.y),s=Math.round(cropRect.w),l=Math.round(cropRect.h);if(encodeOK=Module._Encode(t,o,i,n,c,safeInt(decodedImage.width),safeInt(decodedImage.height),safeInt(decodedImage.channels),safeInt(conversionConfig.format),safeInt(conversionConfig.quality),safeInt(conversionConfig.width),safeInt(conversionConfig.height),safeInt(rotate),safeInt(r),safeInt(a),safeInt(s),safeInt(l)),0==encodeOK)return printConsole("Encode successfully failed.\n"),Module._free(t),Module._free(o),Module._free(i),Module._free(n),void Module._free(c);Module._free(t);const d=Module.getValue(o,"*"),p=Module.getValue(i,"i32"),w=Module.getValue(n,"i32"),f=Module.getValue(c,"i32");if(Module._free(o),Module._free(i),Module._free(n),Module._free(c),0!=p&&NaN!=p){const e=new Uint8Array(Module.HEAPU8.slice(d,d+p));e.set(Module.HEAPU8.subarray(d,d+p));const t=new Blob([e],{type:"image/"+formatEnumToString(conversionConfig.format)}),o=document.createElement("a");o.href=URL.createObjectURL(t),o.download=filename+"-"+w.toString()+"x"+f.toString()+"."+formatEnumToString(conversionConfig.format),o.click()}Module._freeEncodeMalloc(d,conversionConfig.format)}canvas.addEventListener("wheel",(e=>{e.preventDefault(),zoom(e)})),canvas.addEventListener("mousedown",(e=>{canvas.classList.add("grabbing");const t=canvas.getBoundingClientRect(),o=e.clientX-t.left,i=e.clientY-t.top,n=cropRect.x*previewWindow.scale+previewWindow.offsetX,c=cropRect.y*previewWindow.scale+previewWindow.offsetY,r=cropRect.w*previewWindow.scale,a=cropRect.h*previewWindow.scale;1==isCropping&&o>=n-previewWindow.scale-10&&o<=n+previewWindow.scale+10&&i>=c-previewWindow.scale-10&&i<=c+previewWindow.scale+10?(cropRect.lastX=(o-previewWindow.offsetX)/previewWindow.scale,cropRect.lastY=(i-previewWindow.offsetY)/previewWindow.scale,cropRect.offsetX=0,cropRect.offsetY=0,cropRect.vertex=0,cropRect.dragging=!0):1==isCropping&&o>=n+r-previewWindow.scale-10&&o<=n+r+previewWindow.scale+10&&i>=c-previewWindow.scale-10&&i<=c+previewWindow.scale+10?(cropRect.lastX=(o-previewWindow.offsetX)/previewWindow.scale,cropRect.lastY=(i-previewWindow.offsetY)/previewWindow.scale,cropRect.offsetX=0,cropRect.offsetY=0,cropRect.vertex=1,cropRect.dragging=!0):1==isCropping&&o>=n-previewWindow.scale-10&&o<=n+previewWindow.scale+10&&i>=c+a-previewWindow.scale-10&&i<=c+a+previewWindow.scale+10?(cropRect.lastX=(o-previewWindow.offsetX)/previewWindow.scale,cropRect.lastY=(i-previewWindow.offsetY)/previewWindow.scale,cropRect.offsetX=0,cropRect.offsetY=0,cropRect.vertex=2,cropRect.dragging=!0):1==isCropping&&o>=n+r-previewWindow.scale-10&&o<=n+r+previewWindow.scale+10&&i>=c+a-previewWindow.scale-10&&i<=c+a+previewWindow.scale+10?(cropRect.lastX=(o-previewWindow.offsetX)/previewWindow.scale,cropRect.lastY=(i-previewWindow.offsetY)/previewWindow.scale,cropRect.offsetX=0,cropRect.offsetY=0,cropRect.vertex=3,cropRect.dragging=!0):press(e.clientX,e.clientY)})),canvas.addEventListener("mousemove",(e=>{e.preventDefault();const t=canvas.getBoundingClientRect(),o=e.clientX-t.left,i=e.clientY-t.top;if(1==cropRect.dragging){const e=(o-cropRect.offsetX-previewWindow.offsetX)/previewWindow.scale,t=(i-cropRect.offsetY-previewWindow.offsetY)/previewWindow.scale;let n=e-cropRect.lastX,c=t-cropRect.lastY;switch(cropRect.vertex){case 0:cropRect.x+=n,cropRect.y+=c,cropRect.w-=n,cropRect.h-=c;break;case 1:cropRect.y+=c,cropRect.w+=n,cropRect.h-=c;break;case 2:cropRect.x+=n,cropRect.w-=n,cropRect.h+=c;break;case 3:cropRect.w+=n,cropRect.h+=c}cropRect.lastX=e,cropRect.lastY=t,draw()}else move(e.clientX,e.clientY)})),canvas.addEventListener("mouseup",(()=>{end()})),canvas.addEventListener("mouseleave",(()=>{end()})),canvas.addEventListener("touchstart",(function(e){if(e.preventDefault(),1==e.touches.length){const t=canvas.getBoundingClientRect(),o=e.touches[0].clientX-t.left,i=e.touches[0].clientY-t.top,n=cropRect.x*previewWindow.scale+previewWindow.offsetX,c=cropRect.y*previewWindow.scale+previewWindow.offsetY,r=cropRect.w*previewWindow.scale,a=cropRect.h*previewWindow.scale;1==isCropping&&o>=n-previewWindow.scale-20&&o<=n+previewWindow.scale+20&&i>=c-previewWindow.scale-20&&i<=c+previewWindow.scale+20?(cropRect.lastX=(o-previewWindow.offsetX)/previewWindow.scale,cropRect.lastY=(i-previewWindow.offsetY)/previewWindow.scale,cropRect.offsetX=0,cropRect.offsetY=0,cropRect.vertex=0,cropRect.dragging=!0):1==isCropping&&o>=n+r-previewWindow.scale-20&&o<=n+r+previewWindow.scale+20&&i>=c-previewWindow.scale-20&&i<=c+previewWindow.scale+20?(cropRect.lastX=(o-previewWindow.offsetX)/previewWindow.scale,cropRect.lastY=(i-previewWindow.offsetY)/previewWindow.scale,cropRect.offsetX=0,cropRect.offsetY=0,cropRect.vertex=1,cropRect.dragging=!0):1==isCropping&&o>=n-previewWindow.scale-20&&o<=n+previewWindow.scale+20&&i>=c+a-previewWindow.scale-20&&i<=c+a+previewWindow.scale+20?(cropRect.lastX=(o-previewWindow.offsetX)/previewWindow.scale,cropRect.lastY=(i-previewWindow.offsetY)/previewWindow.scale,cropRect.offsetX=0,cropRect.offsetY=0,cropRect.vertex=2,cropRect.dragging=!0):1==isCropping&&o>=n+r-previewWindow.scale-20&&o<=n+r+previewWindow.scale+20&&i>=c+a-previewWindow.scale-20&&i<=c+a+previewWindow.scale+20?(cropRect.lastX=(o-previewWindow.offsetX)/previewWindow.scale,cropRect.lastY=(i-previewWindow.offsetY)/previewWindow.scale,cropRect.offsetX=0,cropRect.offsetY=0,cropRect.vertex=3,cropRect.dragging=!0):press(e.touches[0].clientX,e.touches[0].clientY)}else 2==e.touches.length&&(cropRect.dragging=!1,mobileStartZoom(e.touches[0],e.touches[1]))}),{passive:!1}),canvas.addEventListener("touchmove",(function(e){if(e.preventDefault(),1==e.touches.length)if(1==cropRect.dragging){const t=canvas.getBoundingClientRect(),o=e.touches[0].clientX-t.left,i=e.touches[0].clientY-t.top,n=(o-cropRect.offsetX-previewWindow.offsetX)/previewWindow.scale,c=(i-cropRect.offsetY-previewWindow.offsetY)/previewWindow.scale;let r=n-cropRect.lastX,a=c-cropRect.lastY;switch(cropRect.vertex){case 0:cropRect.x+=r,cropRect.y+=a,cropRect.w-=r,cropRect.h-=a;break;case 1:cropRect.y+=a,cropRect.w+=r,cropRect.h-=a;break;case 2:cropRect.x+=r,cropRect.w-=r,cropRect.h+=a;break;case 3:cropRect.w+=r,cropRect.h+=a}cropRect.lastX=n,cropRect.lastY=c,draw()}else move(e.touches[0].clientX,e.touches[0].clientY);else 2==e.touches.length&&mobileZoom(e.touches[0],e.touches[1])}),{passive:!1}),canvas.addEventListener("touchend",(()=>{mobileEnd()}),{passive:!1}),canvas.addEventListener("touchcancel",(()=>{mobileEnd()}),{passive:!1}),_c_preview_view.addEventListener("click",(function(){preview_container.classList.toggle("hidden"),main.classList.toggle("blurred"),bottom_info.classList.toggle("blurred")})),_c_preview_hide.addEventListener("click",(function(){1!=isCropping&&(preview_container.classList.toggle("hidden"),main.classList.toggle("blurred"),bottom_info.classList.toggle("blurred"))})),_c_preview_reset.addEventListener("click",(function(){1!=isCropping&&(rotate=0,resetCurrentCrop(decodedImage.width,decodedImage.height),draw())})),_c_preview_crop.addEventListener("click",(function(){isCropping=1!=isCropping,_c_preview_crop.classList.toggle("bg-gray"),canvas.classList.toggle("crosshair"),hideWhenCropping(),draw()})),_c_preview_rotate.addEventListener("click",(function(){1!=isCropping&&(rotate=(rotate+1)%4,draw())})),_c_config_view.addEventListener("click",(function(){config_popup.classList.toggle("hidden"),main.classList.toggle("blurred"),bottom_info.classList.toggle("blurred")})),_c_config_reset.addEventListener("click",(function(){resetConfig()})),_c_config_hide.addEventListener("click",(function(){config_popup.classList.toggle("hidden"),main.classList.toggle("blurred"),bottom_info.classList.toggle("blurred"),applyConfig()})),config_quality.addEventListener("input",(()=>{config_quality_visual.textContent=config_quality.value})),config_width_auto.addEventListener("click",(()=>{config_width.value=Math.floor(parseFloat(config_height.value)*decodedImage.ratio)})),config_height_auto.addEventListener("click",(()=>{config_height.value=Math.floor(parseFloat(config_width.value)/decodedImage.ratio)})),_input.addEventListener("change",(function(e){config_container.classList.add("hidden"),resetConsole(),resetPreviewWindow(),rotate=0,canvas.classList.remove("grabbing");const t=e.target.files[0];if(!t)return void printConsole("Error: Received 0 files.\n");filename=t.name.replace(/\.(png|jpeg|jpg|webp|heic)$/i,"");const o=new FileReader;o.onload=function(){const e=o.result,t=new Uint8Array(e),i=Module._malloc(t.length);Module.HEAPU8.set(t,i),input_format=bytesToImageFormat(t);const n=t.length,c=Module._malloc(4),r=Module._malloc(4),a=Module._malloc(4),s=Module._malloc(4);if(0==Module._Decode(i,safeInt(n),safeInt(input_format),c,r,a,s)){printConsole("Decode successfully failed");const e=Module.getValue(c,"*");return Module._freeDecodeMalloc(e,input_format),Module._free(c),Module._free(s),Module._free(a),Module._free(r),void Module._free(i)}const l=Module.getValue(c,"*"),d=Module.getValue(r,"i32"),p=Module.getValue(a,"i32"),w=Module.getValue(s,"i32");Module._free(c),Module._free(s),Module._free(a),Module._free(r),Module._free(i),resetCurrentCrop(d,p),config_format.value=formatEnumToString(3==input_format?0:input_format),config_quality.value=0==input_format?100:90,config_quality_visual.textContent=config_quality.value,config_width.value=d,config_height.value=p,conversionConfig.format=3==input_format?0:input_format,conversionConfig.quality=0==input_format?100:90,conversionConfig.width=d,conversionConfig.height=p,decodedImage.pixels=new Uint8Array(d*p*w),decodedImage.pixels.set(Module.HEAPU8.subarray(l,l+d*p*w)),decodedImage.width=d,decodedImage.height=p,decodedImage.ratio=d/p,decodedImage.channels=w,Module._freeDecodeMalloc(l,input_format);const f=clampedArrayRGBA(decodedImage.pixels,d,p,w),g=new ImageData(f,d,p);canvas.width=d>=800?800:d,canvas.height=p>=800?800:p,vCanvas.width=d,vCanvas.height=p,vContext.putImageData(g,0,0),draw(),config_container.classList.remove("hidden")},o.readAsArrayBuffer(t)})),action_button.addEventListener("click",(function(){ConvertCall()})),window.innerHeight>window.innerWidth&&document.documentElement.classList.add("mobile");
+const main = document.getElementById("main");
+const _input = document.getElementById("input_label");
+const preview_container = document.getElementById("preview_container");
+const preview_canvas = document.getElementById("preview_canvas");
+const config_container = document.getElementById("config_container");
+const config_popup = document.getElementById("config_popup");
+const _c_preview_reset = document.getElementById("_c_preview_reset");
+const _c_preview_crop = document.getElementById("_c_preview_crop");
+const _c_preview_rotate = document.getElementById("_c_preview_rotate");
+const _c_preview_view = document.getElementById("_c_preview_view");
+const _c_preview_hide = document.getElementById("_c_preview_hide");
+const _c_config_view = document.getElementById("_c_config_view");
+const _c_config_hide = document.getElementById("_c_config_hide");
+const config_format = document.getElementById("config_format");
+const config_quality = document.getElementById("config_quality");
+const config_quality_visual = document.getElementById("config_quality_visual");
+const config_width = document.getElementById("config_width");
+const config_width_auto = document.getElementById("config_width_auto");
+const config_height = document.getElementById("config_height");
+const config_height_auto = document.getElementById("config_height_auto");
+const action_button = document.getElementById("action_button");
+const bottom_info = document.getElementById("bottom_info");
+
+// --------------------------- WASM ----------------------------
+
+// Int
+function safeInt(i) {
+	const INT_MIN = -2147483648;
+	const INT_MAX = 2147483647;
+	return (i >= INT_MIN && i <= INT_MAX) ? i : 0;
+}
+
+// Console
+const _console = document.getElementById("console");
+function printConsole(text) {
+	_console.value += text;
+	_console.scrollTop = _console.scrollHeight;
+}
+function resetConsole() {
+	_console.value = "";
+}
+
+// Module init
+resetConsole();
+var Module = {
+	print(...args) {
+		if (_console) {
+			var text = args.join(" ");
+			_console.value += text + "\n";
+		}
+	},
+}
+
+// -------------------------------------------------------------
+
+// --------------------------- GLOBALS -------------------------
+
+// Structs
+var filename = "";
+var input_format = null;
+var isCropping = false;
+var rotate = 0;
+var conversionConfig = {
+	format: null,
+	quality: null,
+	width: null,
+	height: null,
+}
+var decodedImage =  {
+	pixels: null,
+	width: null,
+	height: null,
+	ratio: null,
+	channels: null,
+}
+var previewWindow = {
+	scale: 1,
+	lastTouchesDist: 0,
+	lastX: 0,
+	lastY: 0,
+	offsetX: 0,
+	offsetY: 0,
+	isDragging: false,
+	isTouchZooming: false,
+};
+var cropRect = {
+	x: 0,
+	y: 0,
+	w: 0,
+	h: 0,
+	lastX: 0,
+	lastY: 0,
+	offsetX: 0,
+	offsetY: 0,
+	vertex: 0,
+	dragging: false,
+};
+
+// Resets
+function resetConfig() {
+	config_format.value = input_format == 3 ? formatEnumToString(0) : formatEnumToString(input_format);
+	config_quality.value = input_format == 0 ? 100 : 90;
+	config_quality_visual.textContent = config_quality.value;
+	config_width.value = decodedImage.width;
+	config_height.value = decodedImage.height;
+}
+function resetPreviewWindow() {
+	previewWindow = {
+		scale: 1,
+		lastTouchesDist: 0,
+		lastX: 0,
+		lastY: 0,
+		offsetX: 0,
+		offsetY: 0,
+		isDragging: false,
+		isTouchZooming: false,
+	};
+}
+function resetCurrentCrop(width, height) {
+	cropRect = {
+		x: 0,
+		y: 0,
+		w: width - 1,
+		h: height - 1,
+		lastX: 0,
+		lastY: 0,
+		offsetX: 0,
+		offsetY: 0,
+		vertex: 0,
+		dragging: false,
+	};
+}
+
+// Utils
+function applyConfig() {
+	conversionConfig.format = formatStringToEnum(config_format.value);
+	conversionConfig.quality = parseInt(config_quality.value, 10);
+	conversionConfig.width = parseInt(config_width.value, 10);
+	conversionConfig.height = parseInt(config_height.value, 10);
+}
+
+// -------------------------------------------------------------
+
+// --------------------------- CANVAS --------------------------
+
+// Main canvas
+const canvas = document.getElementById("canvas");
+const context = canvas.getContext("2d");
+context.imageSmoothingEnabled = false;
+
+// Virtual canvas
+const vCanvas = document.createElement("canvas");
+const vContext = vCanvas.getContext("2d");
+vContext.imageSmoothingEnabled = false;
+
+// Constants
+const CONST_CROPTHICKNESS = 1;
+const CONST_CROPSQUAREAREA = 16;
+const CONST_ZOOMFACTOR = 1.1;
+const CONST_MOBILEZOOMFACTOR = 1.05;
+
+// Draw, vCanvas into canvas
+function draw() {
+	// Apply pan and zoom
+	context.setTransform(1, 0, 0, 1, 0, 0);
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.imageSmoothingEnabled = false;
+	context.setTransform(previewWindow.scale, 0, 0, previewWindow.scale, previewWindow.offsetX, previewWindow.offsetY);
+
+	// Apply rotation
+	if (rotate != 0 && isCropping == false) {
+		context.translate(vCanvas.width / 2, vCanvas.height / 2);
+		context.rotate(rotate * Math.PI / 2);
+		context.translate(-1 * vCanvas.width / 2, -1 * vCanvas.height / 2);
+	}
+
+	// Draw image
+	context.drawImage(vCanvas, 0, 0);
+
+	// Draw cropbox
+	const cropX = Math.round(cropRect.x);
+	const cropY = Math.round(cropRect.y);
+	const cropW = Math.round(cropRect.w);
+	const cropH = Math.round(cropRect.h);
+	if (isCropping == true) {
+		context.fillStyle = "red";
+		context.fillRect(cropX + 1 - CONST_CROPSQUAREAREA, cropY + 1 - CONST_CROPSQUAREAREA, CONST_CROPSQUAREAREA, CONST_CROPSQUAREAREA);
+		context.fillRect(cropX + 1 - CONST_CROPSQUAREAREA, cropY + cropH, CONST_CROPSQUAREAREA, CONST_CROPSQUAREAREA);
+		context.fillRect(cropX + cropW, cropY + 1 - CONST_CROPSQUAREAREA, CONST_CROPSQUAREAREA, CONST_CROPSQUAREAREA);
+		context.fillRect(cropX + cropW, cropY + cropH, CONST_CROPSQUAREAREA, CONST_CROPSQUAREAREA);
+	}
+	context.save();
+	context.fillStyle = "rgba(0, 0, 0, 0.25)";
+	context.fillRect(cropX, cropY, cropW, cropH);
+	context.restore();
+	context.strokeStyle = "rgba(255, 0, 0 , 0.6)";
+	context.lineWidth = CONST_CROPTHICKNESS;
+	context.strokeRect(cropX + CONST_CROPTHICKNESS/2, cropY + CONST_CROPTHICKNESS/2, cropW, cropH);
+}
+
+// Click
+function press(x, y) {
+	const rect = canvas.getBoundingClientRect();
+	previewWindow.isDragging = true;
+	previewWindow.isTouchZooming = false;
+	previewWindow.lastX = x - rect.left;
+	previewWindow.lastY = y - rect.top;
+}
+
+// Move
+function move(x, y) {
+	if (!previewWindow.isDragging || previewWindow.isTouchZooming) return;
+	const rect = canvas.getBoundingClientRect();
+
+	const dx = x - rect.left - previewWindow.lastX;
+	const dy = y - rect.top - previewWindow.lastY;
+
+	previewWindow.offsetX += dx;
+	previewWindow.offsetY += dy;
+
+	previewWindow.lastX = x - rect.left;
+	previewWindow.lastY = y - rect.top;
+
+	draw();
+}
+
+// Zoom
+function zoom(e) {
+	const rect = canvas.getBoundingClientRect();
+
+	const mouseX = e.clientX - rect.left;
+	const mouseY = e.clientY - rect.top;
+	const scaleFactor = e.deltaY <= 0 ? CONST_ZOOMFACTOR : 1 / CONST_ZOOMFACTOR;
+
+	const worldX = (mouseX - previewWindow.offsetX) / previewWindow.scale;
+	const worldY = (mouseY - previewWindow.offsetY) / previewWindow.scale;
+
+	previewWindow.scale *= scaleFactor;
+
+	previewWindow.offsetX = mouseX - worldX * previewWindow.scale;
+	previewWindow.offsetY = mouseY - worldY * previewWindow.scale;
+
+	draw();
+}
+
+// End
+function end() {
+	previewWindow.isDragging = false;
+	cropRect.dragging = false;
+	canvas.classList.remove("grabbing");
+}
+
+// Mobile
+function getTouchesDist(touch1, touch2) {
+	const dx = touch1.clientX - touch2.clientX;
+	const dy = touch1.clientY - touch2.clientY;
+	return Math.hypot(dx, dy);
+}
+function getTouchesX(touch1, touch2) {
+	return (touch1.clientX + touch2.clientX)/2
+}
+function getTouchesY(touch1, touch2) {
+	return (touch1.clientY + touch2.clientY)/2
+}
+function mobileStartZoom(touch1, touch2) {
+	cropRect.dragging = false;
+	previewWindow.isDragging = false;
+	previewWindow.isTouchZooming = true;
+	previewWindow.lastTouchesDist = getTouchesDist(touch1, touch2);
+}
+function mobileZoom(touch1, touch2) {
+	const rect = canvas.getBoundingClientRect();
+
+	const touchX = getTouchesX(touch1, touch2) - rect.left;
+	const touchY = getTouchesY(touch1, touch2) - rect.top;
+	const scaleFactor = getTouchesDist(touch1, touch2) - previewWindow.lastTouchesDist <= 0 ? 1 / CONST_MOBILEZOOMFACTOR : CONST_MOBILEZOOMFACTOR;
+
+	const worldX = (touchX - previewWindow.offsetX) / previewWindow.scale;
+	const worldY = (touchY - previewWindow.offsetY) / previewWindow.scale;
+
+	previewWindow.scale *= scaleFactor;
+
+	previewWindow.offsetX = touchX - worldX * previewWindow.scale;
+	previewWindow.offsetY = touchY - worldY * previewWindow.scale;
+
+	previewWindow.lastTouchesDist = getTouchesDist(touch1, touch2);
+
+	draw();
+}
+function mobileEnd() {
+	cropRect.dragging = false;
+	previewWindow.isDragging = false;
+	previewWindow.isTouchZooming = false;
+}
+
+// -------------------------------------------------------------
+
+// --------------------------- UTILS ---------------------------
+
+// --------------------------- PIXELS --------------------------
+
+// fills in Alpha values into RGB
+function clampedArrayRGBtoRGBA(rgb, w, h) {
+	var rgba = new Uint8ClampedArray(w * h * 4);
+	for (let l = 0, X = 0; l < rgb.length; l += 3, X += 4) {
+		rgba[X] = rgb[l];
+		rgba[X + 1] = rgb[l + 1];
+		rgba[X + 2] = rgb[l + 2];
+		rgba[X + 3] = 255;
+	}
+	return rgba;
+}
+
+// returns RGBA (uint8 clamped array)
+function clampedArrayRGBA(pix, w, h, c) {
+	if (c == 3) {
+		return clampedArrayRGBtoRGBA(pix, w, h);
+	} else if (c == 4) {
+		return new Uint8ClampedArray(pix);
+	}
+}
+// --------------------------- BYTES ---------------------------
+
+// returns format enum based on magic bytes
+function bytesToImageFormat(bytes) {
+	// png (.,p,n,g)
+	if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+		return 0;
+	// jpeg (.,.)
+	} else if (bytes[0] === 0xFF && bytes[1] === 0xD8) {
+		return 1;
+	// webp (r,i,f,f w,e,b,p)
+	} else if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+		bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+		return 2;
+	// heic (guessing game)
+	} else if ((bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70 &&
+		bytes[8] === 0x68 && bytes[9] === 0x65 && bytes[10] === 0x69 && bytes[11] === 0x63) || (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70 &&
+		bytes[20] === 0x68 && bytes[21] === 0x65 && bytes[22] === 0x69 && bytes[23] === 0x63)) {
+		return 3;
+	// unsupported
+	} else {
+		return -1;
+	}
+}
+
+// returns string format from enum
+function formatEnumToString(int) {
+	if (int == 0) return "png";
+	else if (int == 1) return "jpeg";
+	else if (int == 2) return "webp";
+	else if (int == 3) return "heic";
+}
+
+// returns enum from string format
+function formatStringToEnum(string) {
+	if (string == "png") return 0;
+	else if (string == "jpeg") return 1;
+	else if (string == "webp") return 2;
+	else if (string == "heic") return 3;
+}
+// -------------------------------------------------------------
+
+// --------------------- EVENT LISTENERS -----------------------
+
+// --------------------- CANVAS LISTENERS ----------------------
+
+// --------------------- PC IMPLEMENTATION ---------------------
+
+canvas.addEventListener("wheel", (e)=> {
+	e.preventDefault();
+	zoom(e);
+});
+canvas.addEventListener("mousedown", (e)=> {
+	canvas.classList.add("grabbing");
+	const rect = canvas.getBoundingClientRect();
+	const mouseX = e.clientX - rect.left;
+	const mouseY = e.clientY - rect.top;
+
+	// Vertex grabbing
+	const cropX = cropRect.x * previewWindow.scale + previewWindow.offsetX;
+	const cropY = cropRect.y * previewWindow.scale + previewWindow.offsetY;
+	const cropW = cropRect.w * previewWindow.scale;
+	const cropH = cropRect.h * previewWindow.scale;
+	if (isCropping == true &&
+		mouseX >= cropX - previewWindow.scale - 10 &&
+		mouseX <= cropX + previewWindow.scale + 10 &&
+		mouseY >= cropY - previewWindow.scale - 10 &&
+		mouseY <= cropY + previewWindow.scale + 10) {
+		cropRect.lastX = (mouseX - previewWindow.offsetX) / previewWindow.scale;
+		cropRect.lastY = (mouseY - previewWindow.offsetY) / previewWindow.scale;
+		cropRect.offsetX = 0;
+		cropRect.offsetY = 0;
+		cropRect.vertex = 0;
+		cropRect.dragging = true;
+	} else if (isCropping == true &&
+		mouseX >= cropX + cropW - previewWindow.scale - 10 &&
+		mouseX <= cropX + cropW + previewWindow.scale + 10 &&
+		mouseY >= cropY - previewWindow.scale - 10 &&
+		mouseY <= cropY + previewWindow.scale + 10) {
+		cropRect.lastX = (mouseX - previewWindow.offsetX) / previewWindow.scale;
+		cropRect.lastY = (mouseY - previewWindow.offsetY) / previewWindow.scale;
+		cropRect.offsetX = 0;
+		cropRect.offsetY = 0;
+		cropRect.vertex = 1;
+		cropRect.dragging = true;
+	} else if (isCropping == true &&
+		mouseX >= cropX - previewWindow.scale - 10 &&
+		mouseX <= cropX + previewWindow.scale + 10 &&
+		mouseY >= cropY + cropH - previewWindow.scale - 10 &&
+		mouseY <= cropY + cropH + previewWindow.scale + 10) {
+		cropRect.lastX = (mouseX - previewWindow.offsetX) / previewWindow.scale;
+		cropRect.lastY = (mouseY - previewWindow.offsetY) / previewWindow.scale;
+		cropRect.offsetX = 0;
+		cropRect.offsetY = 0;
+		cropRect.vertex = 2;
+		cropRect.dragging = true;
+	} else if (isCropping == true &&
+		mouseX >= cropX + cropW - previewWindow.scale - 10 &&
+		mouseX <= cropX + cropW + previewWindow.scale + 10 &&
+		mouseY >= cropY + cropH - previewWindow.scale - 10 &&
+		mouseY <= cropY + cropH + previewWindow.scale + 10) {
+		cropRect.lastX = (mouseX - previewWindow.offsetX) / previewWindow.scale;
+		cropRect.lastY = (mouseY - previewWindow.offsetY) / previewWindow.scale;
+		cropRect.offsetX = 0;
+		cropRect.offsetY = 0;
+		cropRect.vertex = 3;
+		cropRect.dragging = true;
+	// Other grabbing (panning)
+	} else {
+		press(e.clientX, e.clientY);
+	}
+});
+canvas.addEventListener("mousemove", (e)=> {
+	e.preventDefault();
+	const rect = canvas.getBoundingClientRect();
+	const mouseX = e.clientX - rect.left;
+	const mouseY = e.clientY - rect.top;
+
+	// Vertex grabbing
+	if (cropRect.dragging == true) {
+		const newX = (mouseX - cropRect.offsetX - previewWindow.offsetX) / previewWindow.scale;
+		const newY = (mouseY - cropRect.offsetY - previewWindow.offsetY) / previewWindow.scale;
+		let dx = newX - cropRect.lastX;
+		let dy = newY - cropRect.lastY;
+
+		switch (cropRect.vertex) {
+			case 0:
+				cropRect.x += dx;
+				cropRect.y += dy;
+				cropRect.w -= dx;
+				cropRect.h -= dy;
+				break;
+			case 1:
+				cropRect.y += dy;
+				cropRect.w += dx;
+				cropRect.h -= dy;
+				break;
+			case 2:
+				cropRect.x += dx;
+				cropRect.w -= dx;
+				cropRect.h += dy;
+				break;
+			case 3:
+				cropRect.w += dx;
+				cropRect.h += dy;
+				break;
+		}
+
+		cropRect.lastX = newX;
+		cropRect.lastY = newY;
+
+		draw();
+	// Maybe other grabbing (panning)
+	} else {
+		move(e.clientX, e.clientY);
+	}
+});
+canvas.addEventListener("mouseup", () => {
+	end();
+});
+canvas.addEventListener("mouseleave", () => {
+	end();
+});
+
+// -------------------------------------------------------------
+
+// --------------------- MOBILE IMPLEMENTATION -----------------
+
+canvas.addEventListener("touchstart", function(e) {
+	e.preventDefault();
+	if (e.touches.length == 1) {
+		const rect = canvas.getBoundingClientRect();
+		const touchX = e.touches[0].clientX - rect.left;
+		const touchY = e.touches[0].clientY - rect.top;
+
+		// Vertex grabbing
+		const cropX = cropRect.x * previewWindow.scale + previewWindow.offsetX;
+		const cropY = cropRect.y * previewWindow.scale + previewWindow.offsetY;
+		const cropW = cropRect.w * previewWindow.scale;
+		const cropH = cropRect.h * previewWindow.scale;
+		if (isCropping == true &&
+			touchX >= cropX - previewWindow.scale - 20 &&
+			touchX <= cropX + previewWindow.scale + 20 &&
+			touchY >= cropY - previewWindow.scale - 20 &&
+			touchY <= cropY + previewWindow.scale + 20) {
+			cropRect.lastX = (touchX - previewWindow.offsetX) / previewWindow.scale;
+			cropRect.lastY = (touchY - previewWindow.offsetY) / previewWindow.scale;
+			cropRect.offsetX = 0;
+			cropRect.offsetY = 0;
+			cropRect.vertex = 0;
+			cropRect.dragging = true;
+		} else if (isCropping == true &&
+			touchX >= cropX + cropW - previewWindow.scale - 20 &&
+			touchX <= cropX + cropW + previewWindow.scale + 20 &&
+			touchY >= cropY - previewWindow.scale - 20 &&
+			touchY <= cropY + previewWindow.scale + 20) {
+			cropRect.lastX = (touchX - previewWindow.offsetX) / previewWindow.scale;
+			cropRect.lastY = (touchY - previewWindow.offsetY) / previewWindow.scale;
+			cropRect.offsetX = 0;
+			cropRect.offsetY = 0;
+			cropRect.vertex = 1;
+			cropRect.dragging = true;
+		} else if (isCropping == true &&
+			touchX >= cropX - previewWindow.scale - 20 &&
+			touchX <= cropX + previewWindow.scale + 20 &&
+			touchY >= cropY + cropH - previewWindow.scale - 20 &&
+			touchY <= cropY + cropH + previewWindow.scale + 20) {
+			cropRect.lastX = (touchX - previewWindow.offsetX) / previewWindow.scale;
+			cropRect.lastY = (touchY - previewWindow.offsetY) / previewWindow.scale;
+			cropRect.offsetX = 0;
+			cropRect.offsetY = 0;
+			cropRect.vertex = 2;
+			cropRect.dragging = true;
+		} else if (isCropping == true &&
+			touchX >= cropX + cropW - previewWindow.scale - 20 &&
+			touchX <= cropX + cropW + previewWindow.scale + 20 &&
+			touchY >= cropY + cropH - previewWindow.scale - 20 &&
+			touchY <= cropY + cropH + previewWindow.scale + 20) {
+			cropRect.lastX = (touchX - previewWindow.offsetX) / previewWindow.scale;
+			cropRect.lastY = (touchY - previewWindow.offsetY) / previewWindow.scale;
+			cropRect.offsetX = 0;
+			cropRect.offsetY = 0;
+			cropRect.vertex = 3;
+			cropRect.dragging = true;
+		// Other grabbing (panning)
+		} else {
+			press(e.touches[0].clientX, e.touches[0].clientY);
+		}
+	}
+	else if (e.touches.length == 2) {
+		cropRect.dragging = false;
+		mobileStartZoom(e.touches[0], e.touches[1]);
+	}
+}, {passive: false});
+canvas.addEventListener("touchmove", function(e) {
+	e.preventDefault();
+	if (e.touches.length == 1) {
+		// Vertex grabbing
+		if (cropRect.dragging == true) {
+			const rect = canvas.getBoundingClientRect();
+			const touchX = e.touches[0].clientX - rect.left;
+			const touchY = e.touches[0].clientY - rect.top;
+			const newX = (touchX - cropRect.offsetX - previewWindow.offsetX) / previewWindow.scale;
+			const newY = (touchY - cropRect.offsetY - previewWindow.offsetY) / previewWindow.scale;
+			let dx = newX - cropRect.lastX;
+			let dy = newY - cropRect.lastY;
+	
+			switch (cropRect.vertex) {
+				case 0:
+					cropRect.x += dx;
+					cropRect.y += dy;
+					cropRect.w -= dx;
+					cropRect.h -= dy;
+					break;
+				case 1:
+					cropRect.y += dy;
+					cropRect.w += dx;
+					cropRect.h -= dy;
+					break;
+				case 2:
+					cropRect.x += dx;
+					cropRect.w -= dx;
+					cropRect.h += dy;
+					break;
+				case 3:
+					cropRect.w += dx;
+					cropRect.h += dy;
+					break;
+			}
+	
+			cropRect.lastX = newX;
+			cropRect.lastY = newY;
+	
+			draw();
+		} else {
+		// Maybe other grabbing (panning)
+			move(e.touches[0].clientX, e.touches[0].clientY);
+		}
+	} else if (e.touches.length == 2) {
+		mobileZoom(e.touches[0], e.touches[1]);
+	}
+}, {passive: false});
+canvas.addEventListener("touchend", () => {
+	mobileEnd();
+}, {passive: false});
+canvas.addEventListener("touchcancel", () => {
+	mobileEnd();
+}, {passive: false});
+
+// -------------------------------------------------------------
+
+// -------------------------------------------------------------
+
+// --------------------- OTHER LISTENERS -----------------------
+
+// View preview
+_c_preview_view.addEventListener("click", function() {
+	preview_container.classList.toggle("hidden");
+	main.classList.toggle("blurred");
+	bottom_info.classList.toggle("blurred");
+});
+
+// Hide preview
+_c_preview_hide.addEventListener("click", function() {
+	if (isCropping == true) return;
+	preview_container.classList.toggle("hidden");
+	main.classList.toggle("blurred");
+	bottom_info.classList.toggle("blurred");
+});
+
+// Disable other functionality while cropping (why not)
+function hideWhenCropping() {
+	_c_preview_hide.classList.toggle("notallowed");
+	_c_preview_rotate.classList.toggle("notallowed");
+	_c_preview_reset.classList.toggle("notallowed");
+}
+
+// Reset stuff
+_c_preview_reset.addEventListener("click", function() {
+	if (isCropping == true) return;
+	rotate = 0;
+	resetCurrentCrop(decodedImage.width, decodedImage.height);
+	// Redraw
+	draw();
+});
+
+// Toggle cropping
+_c_preview_crop.addEventListener("click", function() {
+	// Toggle
+	isCropping = isCropping == true ? false : true;
+	_c_preview_crop.classList.toggle("bg-gray");
+	canvas.classList.toggle("crosshair");
+	hideWhenCropping()
+	// Redraw
+	draw();
+});
+
+// Toggle cropping
+_c_preview_rotate.addEventListener("click", function() {
+	if (isCropping == true) return;
+	rotate = (rotate + 1) % 4;
+	// Redraw
+	draw();
+});
+
+// View config
+_c_config_view.addEventListener("click", function() {
+	config_popup.classList.toggle("hidden");
+	main.classList.toggle("blurred");
+	bottom_info.classList.toggle("blurred");
+});
+
+// Hide config
+_c_config_reset.addEventListener("click", function() {
+	resetConfig();
+});
+
+// Hide config
+_c_config_hide.addEventListener("click", function() {
+	config_popup.classList.toggle("hidden");
+	main.classList.toggle("blurred");
+	bottom_info.classList.toggle("blurred");
+	applyConfig();
+});
+
+// Config quality hook
+config_quality.addEventListener("input", () => {
+	config_quality_visual.textContent = config_quality.value;
+});
+
+// Config width auto
+config_width_auto.addEventListener("click", () => {
+	config_width.value = Math.floor(parseFloat(config_height.value) * decodedImage.ratio);
+});
+
+// Config height auto
+config_height_auto.addEventListener("click", () => {
+	config_height.value = Math.floor(parseFloat(config_width.value) / decodedImage.ratio);
+});
+
+// -------------------------------------------------------------
+
+// -------------------------------------------------------------
+
+// -------------------------- LOGIC ----------------------------
+
+// Input
+_input.addEventListener("change", function(e) {
+	// Hide
+	config_container.classList.add("hidden");
+
+	// Reset
+	resetConsole();
+	resetPreviewWindow();
+	rotate = 0;
+	canvas.classList.remove("grabbing");
+
+	// Get file
+	const file = e.target.files[0];
+	if (!file) {
+		printConsole("Error: Received 0 files.\n");
+		return;
+	}
+
+	// Store filename
+	filename = file.name.replace(/\.(png|jpeg|jpg|webp|heic)$/i, "");
+
+	// Read file
+	const reader = new FileReader();
+	reader.onload = function() {
+		// Get bytes
+		const arrayBuffer = reader.result;
+		const charArray = new Uint8Array(arrayBuffer);
+
+		// Prepare bytes
+		const bytes = Module._malloc(charArray.length);
+		Module.HEAPU8.set(charArray, bytes);
+
+		// Input format
+		input_format = bytesToImageFormat(charArray);
+		const input_size = charArray.length;
+
+		// Input callback initialize
+		const input_pixels_ptr = Module._malloc(4);
+		const input_width_ptr = Module._malloc(4);
+		const input_height_ptr = Module._malloc(4);
+		const input_channels_ptr = Module._malloc(4);
+
+		// Call
+		const decodeOK = Module._Decode(bytes, safeInt(input_size), safeInt(input_format), input_pixels_ptr, input_width_ptr, input_height_ptr, input_channels_ptr);
+
+		// Check for success
+		if (decodeOK == false) {
+			printConsole("Decode successfully failed");
+			const internal_malloc = Module.getValue(input_pixels_ptr, "*");
+			Module._freeDecodeMalloc(internal_malloc, input_format);
+			Module._free(input_pixels_ptr);
+			Module._free(input_channels_ptr);
+			Module._free(input_height_ptr);
+			Module._free(input_width_ptr);
+			Module._free(bytes);
+			return;
+		}
+
+		// Input callback retrieve
+		const input_pixels = Module.getValue(input_pixels_ptr, "*");
+		const input_width = Module.getValue(input_width_ptr, "i32");
+		const input_height = Module.getValue(input_height_ptr, "i32");
+		const input_channels = Module.getValue(input_channels_ptr, "i32");
+
+		// Delete used pointers
+		Module._free(input_pixels_ptr);
+		Module._free(input_channels_ptr);
+		Module._free(input_height_ptr);
+		Module._free(input_width_ptr);
+		Module._free(bytes);
+
+		// Reset crop
+		resetCurrentCrop(input_width, input_height);
+
+		/*
+			Decoding successful:
+				input_pixels
+				input_format
+				input_width
+				input_height
+				input_channels
+			--------------------
+		*/
+
+		// Initialize config
+		config_format.value = input_format == 3 ? formatEnumToString(0) : formatEnumToString(input_format);
+		config_quality.value = input_format == 0 ? 100 : 90;
+		config_quality_visual.textContent = config_quality.value;
+		config_width.value = input_width;
+		config_height.value = input_height;
+		conversionConfig.format = input_format == 3 ? 0 : input_format;
+		conversionConfig.quality = input_format == 0 ? 100 : 90;
+		conversionConfig.width = input_width;
+		conversionConfig.height = input_height;
+
+		// Copy decode output
+		decodedImage.pixels = new Uint8Array(input_width * input_height * input_channels);
+		decodedImage.pixels.set(Module.HEAPU8.subarray(input_pixels, input_pixels + input_width * input_height * input_channels));
+		decodedImage.width = input_width;
+		decodedImage.height = input_height;
+		decodedImage.ratio = input_width / input_height;
+		decodedImage.channels = input_channels;
+
+		// Free the pixels
+		Module._freeDecodeMalloc(input_pixels, input_format);
+
+		// Make image
+		const rgbaPixels = clampedArrayRGBA(decodedImage.pixels, input_width, input_height, input_channels);
+		const imageData = new ImageData(rgbaPixels, input_width, input_height);
+
+		// Set up canvas
+		canvas.width = input_width >= 800 ? 800 : input_width;
+		canvas.height = input_height >= 800 ? 800: input_height;
+		vCanvas.width = input_width;
+		vCanvas.height = input_height;
+		vContext.putImageData(imageData, 0, 0);
+
+		// Draw
+		draw();
+
+		// Enable configging
+		config_container.classList.remove("hidden");
+	};
+
+	reader.readAsArrayBuffer(file);
+});
+
+// Convert
+function ConvertCall() {
+	// Abort default input
+	if (decodedImage.channels == 0) return;
+
+	// Abort nonsense
+	if (Math.round(cropRect.w) == 0 || Math.round(cropRect.h) == 0) {
+		printConsole("Aborting cropping the entire image.\n");
+		return;
+	}
+
+	// Input pixels
+	const input_size = decodedImage.pixels.length;
+	const input_pixels = Module._malloc(input_size);
+	Module.HEAPU8.set(decodedImage.pixels, input_pixels);
+
+	// Retrieval ptrs
+	const output_bytes_ptr = Module._malloc(4);
+	const output_size_ptr = Module._malloc(4);
+	const output_width_ptr = Module._malloc(4);
+	const output_height_ptr = Module._malloc(4);
+
+	// Call
+	const crop_x = Math.round(cropRect.x);
+	const crop_y = Math.round(cropRect.y);
+	const crop_w = Math.round(cropRect.w);
+	const crop_h = Math.round(cropRect.h);
+	encodeOK = Module._Encode(input_pixels, output_bytes_ptr, output_size_ptr, output_width_ptr, output_height_ptr, safeInt(decodedImage.width), safeInt(decodedImage.height), safeInt(decodedImage.channels), safeInt(conversionConfig.format), safeInt(conversionConfig.quality), safeInt(conversionConfig.width), safeInt(conversionConfig.height), safeInt(rotate), safeInt(crop_x), safeInt(crop_y), safeInt(crop_w), safeInt(crop_h));
+
+	// Fail, not past encoding rn
+	if (encodeOK == false) {
+		printConsole("Encode successfully failed.\n");
+
+		Module._free(input_pixels);
+		Module._free(output_bytes_ptr);
+		Module._free(output_size_ptr);
+		Module._free(output_width_ptr);
+		Module._free(output_height_ptr);
+
+		return;
+	}
+
+	// Free input
+	Module._free(input_pixels);
+
+	// Retrieve blob info
+	const output_bytes = Module.getValue(output_bytes_ptr, "*");
+	const output_size = Module.getValue(output_size_ptr, "i32");
+	const output_width = Module.getValue(output_width_ptr, "i32");
+	const output_height = Module.getValue(output_height_ptr, "i32");
+
+	// Delete used pointers
+	Module._free(output_bytes_ptr);
+	Module._free(output_size_ptr);
+	Module._free(output_width_ptr);
+	Module._free(output_height_ptr);
+
+	// Make blob downloadable
+	if (output_size != 0 && output_size != NaN) {
+		// Copy bytes
+		const resultArray = new Uint8Array(Module.HEAPU8.slice(output_bytes, output_bytes + output_size));
+		resultArray.set(Module.HEAPU8.subarray(output_bytes, output_bytes + output_size));
+
+		// Make blob
+		const blob = new Blob([resultArray], {type: "image/" + formatEnumToString(conversionConfig.format)});
+		const link = document.createElement("a");
+		link.href = URL.createObjectURL(blob);
+		link.download = filename + "-" + (output_width).toString() + "x" + (output_height).toString() + "." + formatEnumToString(conversionConfig.format);
+		link.click();
+	}
+
+	// Free blob bytes
+	Module._freeEncodeMalloc(output_bytes, conversionConfig.format);
+}
+
+// Call conversion
+action_button.addEventListener("click", function() {
+	ConvertCall();
+});
+
+// -------------------------------------------------------------
+
+// hack
+if (window.innerHeight > window.innerWidth) {
+	document.documentElement.classList.add("mobile");
+}
