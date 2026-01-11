@@ -1,0 +1,261 @@
+html {
+	width: 100%;
+	height: 100%;
+}
+html.mobile {
+	font-size: 20px;
+}
+body * {
+	font-family: "Lucida Console", Monaco, monospace;
+	font-size: 1.2rem;
+	color: white;
+}
+body {
+	background-color: black;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+#bg {
+	position: absolute;
+	opacity: 0.15;
+	width: 100%;
+	height: 100%;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" /></filter><rect width="100%" height="100%" filter="url(%23n)" /></svg>");
+	background-size: 512px 512px;
+}
+body .hidden {
+	display: none;
+}
+h1 {
+	font-size: 1.8rem;
+	margin: 0 0 25px 0;
+}
+a {
+	color: white;
+}
+img {
+	display: block;
+	margin: 0;
+}
+label {
+	display: block;
+	cursor: pointer;
+}
+button {
+	all: unset;
+	display: block;
+	cursor: pointer;
+}
+canvas {
+	display: block;
+	cursor: grab;
+}
+.icon {
+	user-select: none;
+	pointer-events: none;
+	margin: 6px;
+	width: 20px;
+	height: 20px;
+	max-width: 100%;
+	max-height: 100%;
+}
+.grabbing {
+	cursor: grabbing;
+}
+.notallowed {
+	cursor: not-allowed;
+}
+.crosshair {
+	cursor: crosshair;
+}
+.flex {
+	display: flex;
+}
+.fc {
+	flex-direction: column;
+}
+.sb {
+	justify-content: space-between;
+}
+.gap-25-px {
+	gap: 25px;
+}
+.blurred {
+	filter: blur(3px);
+	opacity: 0.8;
+	pointer-events: none;
+}
+.bg-gray {
+	background-color: gray;
+}
+
+/*
+	CONSOLE
+*/
+#console {
+	background-color: black;
+	position: absolute;
+	display: block;
+	width: 100%;
+	height: 100%;
+	line-height: 1.2rem;
+	box-sizing: border-box;
+	padding: 25px;
+	margin: 0;
+	border: 0;
+	outline: none;
+	resize: none;
+}
+
+/*
+	MAIN
+*/
+#main {
+	background-color: black;
+	border: 1px solid white;
+	width: 80%;
+	min-width: 350px;
+	max-width: 900px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	box-sizing: border-box;
+	padding: 50px;
+}
+	/*
+		INPUT
+	*/
+	#input_label
+	{
+		text-decoration: underline;
+	}
+		#input
+		{
+			display: none;
+		}
+	/*
+		CONFIG
+	*/
+	#config_container
+	{
+		margin-top: 25px;
+	}
+		#config_container>button
+		{
+			border: 1px solid white;
+			padding: 5px 15px;
+		}
+		#config_container>label
+		{
+			padding: 5px 0;
+		}
+/*
+	PREVIEW
+*/
+#preview_canvas canvas {
+	background: linear-gradient(135deg, rgb(255, 0, 0) 0%, rgba(0, 255, 0, 0.5) 50%, rgb(0, 0, 255) 100%);
+	margin: 0 auto;
+	max-width: 90vw;
+}
+	/*
+		POPUP
+	*/
+	.popup_window
+	{
+		border: 1px solid white;
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		z-index: 2;
+		transform: translate(-50%, -50%);
+		max-width: 90%;
+	}
+		.preview_title
+		{
+			background-color: black;
+			border-bottom: 1px solid white;
+			height: 32px;
+			width: 100%;
+		}
+			.preview_title button
+			{
+				border-right: 1px solid white;
+				height: 32px;
+				width: 32px;
+				line-height: 32px;
+				text-align: center;
+				font-weight: bold;
+			}
+			.preview_title #_c_preview_hide,
+			.preview_title #_c_config_hide
+			{
+				background-color: white;
+				border-right: none;
+				color: black;
+			}
+/*
+	CONFIG
+*/
+#config_options {
+	flex-direction: column;
+	gap: 10px;
+	padding: 50px;
+	font-size: 1.2rem;
+	background-color: black;
+}
+	#config_options > span
+	{
+		margin-top: 10px;
+	}
+	.autoconfig > button
+	{
+		background-color: black;
+		border: 1px solid gray;
+		padding: 5px;
+	}
+	#config_options > select, #config_options > input, #config_options .autoconfig > input
+	{
+		background-color: black;
+		border: 1px solid gray;
+		margin: 0;
+		padding: 5px 10px;
+	}
+		#config_quality_container input
+		{
+			accent-color: gray;
+			margin: 0;
+			width: 100%;
+		}
+/*
+	BOTTOM INFO
+*/
+#bottom_info {
+	position: absolute;
+	bottom: 15px;
+	width: 100%;
+}
+#bottom_info>* {
+	margin: 0;
+	text-align: center;
+}
+
+/* HACK */
+html.mobile .icon {
+	margin: 6px;
+	width: 50px;
+	height: 50px;
+}
+html.mobile .preview_title  {
+	height: 64px;
+}
+html.mobile .preview_title button {
+	width: 64px;
+	height: 64px;
+}
+html.mobile .preview_title button {
+	line-height: 64px;
+}

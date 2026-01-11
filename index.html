@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Image utils</title>
+		<link rel="stylesheet" href="style.css">
+		<script type="text/javascript" src="image-web-utils.js" defer></script>
+		<script type="text/javascript" src="a.out.js" defer></script>
+	</head>
+	<body>
+		<textarea id="console" spellcheck="false"></textarea>
+		<div id="bg"></div>
+		<main id="main">
+			<h1>
+				Image conversion
+			</h1>
+			<label for="input" id="input_label">
+				<input type="file" id="input" accept="image/png, image/jpeg, image/webp, image/heic"/>
+				Browse for image...
+			</label>
+			<div id="config_container" class="hidden flex gap-25-px">
+				<button id="_c_preview_view">View</button>
+				<button id="_c_config_view">Config</button>
+				<button id="action_button">Convert</button>
+			</div>
+		</main>
+		<div id="preview_container" class="popup_window hidden">
+			<div class="preview_title flex sb">
+				<div class="flex">
+					<button id="_c_preview_reset"><img class="icon" src="images/restore.png"></button>
+					<button id="_c_preview_crop"><img class="icon" src="images/crop.png"></button>
+					<button id="_c_preview_rotate"><img class="icon" src="images/rotate.png"></button>
+				</div>
+				<button id="_c_preview_hide"><img class="icon" src="images/close.png"></button>
+			</div>
+			<div id="preview_canvas">
+				<canvas id="canvas"></canvas>
+			</div>
+		</div>
+		<div id="config_popup" class="popup_window hidden">
+			<div class="preview_title flex sb">
+				<button id="_c_config_reset"><img class="icon" src="images/restore.png"></button>
+				<button id="_c_config_hide"><img class="icon" src="images/close.png"></button>
+			</div>
+			<div id="config_options" class="flex">
+				<span>Format:</span>
+				<select id="config_format">
+					<option value="png">PNG</option>
+					<option value="jpeg">JPEG</option>
+					<option value="webp">WebP</option>
+				</select>
+				<span>Quality:</span>
+				<div id="config_quality_container" class="flex sb gap-25-px">
+					<input type="range" id="config_quality" min="0" max="100" step="1"/>
+					<span id="config_quality_visual"></span>
+				</div>
+				<span>Width:</span>
+				<div class="autoconfig flex gap-25-px">
+					<input type="number" id="config_width"/>
+					<button id="config_width_auto">Auto</button>
+				</div>
+				<span>Height:</span>
+				<div class="autoconfig flex gap-25-px">
+					<input type="number" id="config_height"/>
+					<button id="config_height_auto">Auto</button>
+				</div>
+			</div>
+		</div>
+		<div id="bottom_info">
+			<p>WASM image editor. <a href="https://github.com/addyreal/image-web-utils">Github</a></p>
+		</div>
+	</body>
+</html>
