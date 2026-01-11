@@ -1,20 +1,16 @@
-html
-{
+html {
 	width: 100%;
 	height: 100%;
 }
-html.mobile
-{
+html.mobile {
 	font-size: 20px;
 }
-body *
-{
-	font-family: 'Lucida Console', Monaco, monospace;
+body * {
+	font-family: "Lucida Console", Monaco, monospace;
 	font-size: 1.2rem;
 	color: white;
 }
-body
-{
+body {
 	background-color: black;
 	position: relative;
 	width: 100%;
@@ -22,51 +18,42 @@ body
 	margin: 0;
 	padding: 0;
 }
-#bg
-{
+#bg {
 	position: absolute;
 	opacity: 0.15;
 	width: 100%;
 	height: 100%;
-	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" /></filter><rect width="100%" height="100%" filter="url(%23n)" /></svg>');
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" /></filter><rect width="100%" height="100%" filter="url(%23n)" /></svg>");
 	background-size: 512px 512px;
 }
-body .hidden
-{
+body .hidden {
 	display: none;
 }
-h1
-{
+h1 {
 	font-size: 1.8rem;
 	margin: 0 0 25px 0;
 }
-a
-{
+a {
 	color: white;
 }
-img
-{
+img {
 	display: block;
 	margin: 0;
 }
-label
-{
+label {
 	display: block;
 	cursor: pointer;
 }
-button
-{
+button {
 	all: unset;
 	display: block;
 	cursor: pointer;
 }
-canvas
-{
+canvas {
 	display: block;
 	cursor: grab;
 }
-.icon
-{
+.icon {
 	user-select: none;
 	pointer-events: none;
 	margin: 6px;
@@ -75,50 +62,40 @@ canvas
 	max-width: 100%;
 	max-height: 100%;
 }
-.grabbing
-{
+.grabbing {
 	cursor: grabbing;
 }
-.notallowed
-{
+.notallowed {
 	cursor: not-allowed;
 }
-.crosshair
-{
+.crosshair {
 	cursor: crosshair;
 }
-.flex
-{
+.flex {
 	display: flex;
 }
-.fc
-{
+.fc {
 	flex-direction: column;
 }
-.sb
-{
+.sb {
 	justify-content: space-between;
 }
-.gap-25-px
-{
+.gap-25-px {
 	gap: 25px;
 }
-.blurred
-{
+.blurred {
 	filter: blur(3px);
 	opacity: 0.8;
 	pointer-events: none;
 }
-.bg-gray
-{
+.bg-gray {
 	background-color: gray;
 }
 
 /*
 	CONSOLE
 */
-#console
-{
+#console {
 	background-color: black;
 	position: absolute;
 	display: block;
@@ -136,8 +113,7 @@ canvas
 /*
 	MAIN
 */
-#main
-{
+#main {
 	background-color: black;
 	border: 1px solid white;
 	width: 80%;
@@ -180,8 +156,7 @@ canvas
 /*
 	PREVIEW
 */
-#preview_canvas canvas
-{
+#preview_canvas canvas {
 	background: linear-gradient(135deg, rgb(255, 0, 0) 0%, rgba(0, 255, 0, 0.5) 50%, rgb(0, 0, 255) 100%);
 	margin: 0 auto;
 	max-width: 90vw;
@@ -225,8 +200,7 @@ canvas
 /*
 	CONFIG
 */
-#config_options
-{
+#config_options {
 	flex-direction: column;
 	gap: 10px;
 	padding: 50px;
@@ -259,35 +233,29 @@ canvas
 /*
 	BOTTOM INFO
 */
-#bottom_info
-{
+#bottom_info {
 	position: absolute;
 	bottom: 15px;
 	width: 100%;
 }
-#bottom_info>*
-{
+#bottom_info>* {
 	margin: 0;
 	text-align: center;
 }
 
 /* HACK */
-html.mobile .icon
-{
+html.mobile .icon {
 	margin: 6px;
 	width: 50px;
 	height: 50px;
 }
-html.mobile .preview_title 
-{
+html.mobile .preview_title  {
 	height: 64px;
 }
-html.mobile .preview_title button
-{
+html.mobile .preview_title button {
 	width: 64px;
 	height: 64px;
 }
-html.mobile .preview_title button
-{
+html.mobile .preview_title button {
 	line-height: 64px;
 }
