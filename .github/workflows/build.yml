@@ -38,19 +38,19 @@ jobs:
 
     - name: Copy index.html
       run: |
-        cp ../index.html .
+        cp index.html ./build/
 
     - name: Copy style.css
       run: |
-        cp ../style.css .
+        cp style.css ./build/
 
     - name: Copy compressed js
       run: |
-        terser ../image-web-utils.js --compress --mangle -o ./image-web-utils.js
+        terser image-web-utils.js --compress --mangle -o ./build/image-web-utils.js
 
     - name: Copy over images
       run: |
-        cp -r ../images/ .
+        cp -r images/ ./build/
 
     - name: Create .nojekyll
       run: |
